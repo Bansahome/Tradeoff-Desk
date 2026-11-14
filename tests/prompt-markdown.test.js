@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, promptStatus } from '../src/core/prompt.js';
+import { buildPrompt, buildReformatPrompt, promptStatus } from '../src/core/prompt.js';
 import { buildMarkdown } from '../src/core/markdown.js';
 import { freshState } from '../src/core/state.js';
 
@@ -9,6 +9,12 @@ function sample() {
   s.hinweise = 'Offline-Standorte prüfen';
   return s;
 }
+
+describe('Folge-Prompt', () => {
+  it('Snapshot', () => {
+    expect(buildReformatPrompt(sample())).toMatchSnapshot();
+  });
+});
 
 describe('Prompt-Builder', () => {
   it('Snapshot mit Kontext und Hinweisen', () => {

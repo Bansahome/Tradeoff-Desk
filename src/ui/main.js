@@ -3,7 +3,7 @@ import { de as T } from '../strings.js';
 import { $, esc, download, readFile, flash, copyFrom } from './dom.js';
 import { parseTable } from '../core/parser.js';
 import { calc, rank } from '../core/calc.js';
-import { buildPrompt, promptStatus } from '../core/prompt.js';
+import { buildPrompt, buildReformatPrompt, promptStatus } from '../core/prompt.js';
 import { buildMarkdown } from '../core/markdown.js';
 import { activeCriteria, formatDate, slugify } from '../core/util.js';
 import {
@@ -169,15 +169,18 @@ function updatePrompt() {
   const chk = promptStatus(S);
   if (!chk.ok) {
     ta.value = ''; btn.disabled = true;
+    $('fixOut').value = ''; $('copyFix').disabled = true;
     st.className = 'status warn';
     st.textContent = chk.reason === 'products' ? T.step1.needProducts : T.step1.needCriteria;
     return;
   }
   btn.disabled = false;
   ta.value = buildPrompt(S);
+  $('fixOut').value = buildReformatPrompt(S); $('copyFix').disabled = false;
   st.className = 'status'; st.textContent = '';
 }
 $('copyPrompt').addEventListener('click', () => copyFrom($('promptOut'), $('promptStatus'), T.copy));
+$('copyFix').addEventListener('click', () => copyFrom($('fixOut'), $('fixStatus'), T.copy));
 $('copyMd').addEventListener('click', () => copyFrom($('mdOut'), $('mdStatus'), T.copy));
 $('toStep2').addEventListener('click', () => showStep(2));
 $('resetAll').addEventListener('click', () => {
@@ -190,11 +193,11 @@ $('resetAll').addEventListener('click', () => {
 $('parseBtn').addEventListener('click', () => {
   const st = $('parseStatus');
   S.pasted = $('pasted').value; save();
-  const res = parseTable(S.pasted);
-  if (!res.ok) { flash(st, T.step2.parseErrors[res.error], 'warn'); return; }
+  const res = parseTable(S.pasted, { products: S.products });
+  if (!res.ok) { flash(st, T.step2.parseErrors[res.error], 'warn'); $('fixBox').open = true; return; }
   if (hasScores(S) && !window.confirm(T.step2.overwriteConfirm)) return;
   S.cols = res.cols; S.rows = rowsFromTable(res); save();
-  flash(st, T.step2.parsed(res.rows.length, res.cols.length), 'ok');
+  flash(st, T.step2.parsed(res.rows.length, res.cols.length) + (res.transposed ? T.step2.transposed : ''), 'ok');
   $('pasteBox').open = false;
   renderMatrix();
 });

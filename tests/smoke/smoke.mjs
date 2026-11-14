@@ -82,6 +82,19 @@ await page.click('#critEdit');
 
 // Schritt 2
 await page.click('#toStep2');
+// Fehlerfall: langer Bericht ohne Tabelle -> Meldung, Folge-Prompt klappt auf
+await page.fill('#pasted', 'Das ist ein langer Bericht ohne jede Tabelle. '.repeat(50));
+await page.click('#parseBtn');
+assert.match(await page.textContent('#parseStatus'), /Keine Tabelle erkannt/);
+assert.equal(await page.locator('#fixBox').evaluate((d) => d.open), true);
+assert.match(await page.inputValue('#fixOut'), /Genau eine Markdown-Tabelle[\s\S]*Intune \| WSUS \| baramundi/);
+step('Bericht ohne Tabelle: klare Meldung, Folge-Prompt sichtbar');
+// Gedrehte Tabelle (Produkte in Zeilen) wird umgestellt
+await page.fill('#pasted', '| Produkt | Funktionsumfang | Lizenzierung und Kosten |\n|---|---|---|\n| Intune | a | b |\n| WSUS | c | d |\n| baramundi | e | f |');
+await page.click('#parseBtn');
+assert.match(await page.textContent('#parseStatus'), /2 Kriterien × 3 Produkte.*gedreht/);
+step('Gedrehte Tabelle erkannt und umgestellt');
+await page.evaluate(() => { document.getElementById('pasteBox').open = true; });
 await page.fill('#pasted', TABLE);
 await page.click('#parseBtn');
 assert.match(await page.textContent('#parseStatus'), /2 Kriterien × 3 Produkte/);

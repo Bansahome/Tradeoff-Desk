@@ -103,6 +103,39 @@ describe('parseTable', () => {
   });
 });
 
+describe('parseTable mit Produkt-Hinweisen', () => {
+  const summary = '| Thema | Fazit |\n|---|---|\n| Gesamt | gut |\n\n| Kriterium | Alpha | Beta |\n|---|---|---|\n| K1 | a | b |';
+  it('ignoriert eine vorangestellte Zusammenfassungstabelle, wenn Produkte bekannt sind', () => {
+    const r = parseTable('| Bereich | Hinweis | Quelle |\n|---|---|---|\n| x | y | z |\n\n' + '| Kriterium | Alpha | Beta |\n|---|---|---|\n| K1 | a | b |', { products: ['Alpha', 'Beta'] });
+    expect(r.cols).toEqual(['Alpha', 'Beta']);
+    expect(r.rows[0].name).toBe('K1');
+  });
+  it('überspringt zu schmale Tabellen, wenn eine brauchbare folgt', () => {
+    const r = parseTable(summary, { products: ['Alpha', 'Beta'] });
+    expect(r.ok).toBe(true);
+    expect(r.cols).toEqual(['Alpha', 'Beta']);
+  });
+  it('stellt eine gedrehte Tabelle (Produkte in Zeilen) um', () => {
+    const t = '| Produkt | Funktion | Kosten |\n|---|---|---|\n| Alpha | f-a | k-a |\n| Beta | f-b | k-b |';
+    const r = parseTable(t, { products: ['Alpha', 'Beta'] });
+    expect(r.transposed).toBe(true);
+    expect(r.cols).toEqual(['Alpha', 'Beta']);
+    expect(r.rows).toEqual([
+      { name: 'Funktion', cells: ['f-a', 'f-b'] },
+      { name: 'Kosten', cells: ['k-a', 'k-b'] },
+    ]);
+  });
+  it('erkennt Produktnamen auch mit Zusätzen wie „Microsoft Intune“', () => {
+    const r = parseTable('| Kriterium | Microsoft Intune (Cloud) | WSUS |\n|---|---|---|\n| K | a | b |', { products: ['Intune', 'WSUS'] });
+    expect(r.transposed).toBeUndefined();
+    expect(r.cols).toHaveLength(2);
+  });
+  it('fällt ohne Treffer auf die erste Tabelle zurück', () => {
+    const r = parseTable(basic, { products: ['Gamma', 'Delta'] });
+    expect(r.cols).toEqual(['A', 'B']);
+  });
+});
+
 describe('Helfer', () => {
   it('splitRow trennt und trimmt', () => {
     expect(splitRow('| a | b \\| c | d |')).toEqual(['a', 'b | c', 'd']);

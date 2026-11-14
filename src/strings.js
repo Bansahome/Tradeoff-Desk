@@ -66,6 +66,8 @@ export const de = {
     critRemove: (name) => name + ' löschen',
     promptTitle: 'Prompt für ChatGPT',
     promptLabel: 'Fertiger Prompt',
+    modeHint:
+      'Tipp: Normalen Chat mit aktivierter Websuche nutzen, nicht den Deep-Research-Modus. Deep Research liefert lange Berichte und hält sich selten an das Tabellenformat. Klappt es trotzdem nicht, hilft in Schritt 2 der Folge-Prompt.',
     copyPrompt: 'Prompt kopieren',
     toStep2: 'Weiter zu Schritt 2',
     reset: 'Alles leeren',
@@ -81,9 +83,15 @@ export const de = {
     parse: 'Tabelle übernehmen',
     blank: 'Ohne Antwort bewerten',
     pasteHint: 'Ohne Antwort startest du mit den angekreuzten Kriterien und leeren Beschreibungen.',
+    fixTitle: 'Antwort war keine Tabelle? Folge-Prompt nutzen',
+    fixHint:
+      'Diesen Text im selben Chat nachschicken. Der Chatbot formatiert sein Ergebnis dann um. Die neue Antwort fügst du oben ein.',
+    fixLabel: 'Folge-Prompt zum Umformatieren',
+    fixCopy: 'Folge-Prompt kopieren',
+    transposed: ' Die Tabelle war gedreht (Produkte in Zeilen) und wurde umgestellt.',
     parsed: (rows, cols) => rows + ' Kriterien × ' + cols + ' Produkte übernommen.',
     parseErrors: {
-      'no-table': 'Keine Tabelle erkannt. Sie braucht eine Kopfzeile, eine Trennzeile (|---|---|) und mindestens eine Zeile.',
+      'no-table': 'Keine Tabelle erkannt. Sie braucht eine Kopfzeile, eine Trennzeile (|---|---|) und mindestens eine Zeile. Schick dem Chatbot unten den Folge-Prompt.',
       'too-few-columns': 'Die Kopfzeile hat zu wenig Spalten. Nötig sind „Kriterium“ und mindestens zwei Produkte.',
       'no-rows': 'Die Tabelle hat keine Datenzeilen.',
     },

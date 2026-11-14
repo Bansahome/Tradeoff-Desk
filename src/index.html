@@ -89,6 +89,7 @@
         <span class="status" id="promptStatus" role="status"></span>
       </div>
       <p class="hint">{{step1.resetHint}}</p>
+      <p class="note">{{step1.modeHint}}</p>
     </div>
   </section>
 
@@ -105,6 +106,17 @@
           <span class="status" id="parseStatus" role="status"></span>
         </div>
         <p class="hint">{{step2.pasteHint}}</p>
+      </div>
+    </details>
+    <details class="paste" id="fixBox">
+      <summary>{{step2.fixTitle}}</summary>
+      <div class="card">
+        <p class="hint">{{step2.fixHint}}</p>
+        <textarea class="mono short" id="fixOut" readonly aria-label="{{step2.fixLabel}}"></textarea>
+        <div class="bar-actions">
+          <button type="button" class="btn" id="copyFix">{{step2.fixCopy}}</button>
+          <span class="status" id="fixStatus" role="status"></span>
+        </div>
       </div>
     </details>
     <div id="matrix"></div>

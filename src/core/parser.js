@@ -50,18 +50,11 @@ function findBlocks(text) {
   return blocks;
 }
 
-export function parseTable(text) {
-  const blocks = findBlocks(String(text || ''));
-  // Erste Tabelle mit Trennzeile an zweiter Stelle, sonst erster Block mit >= 2 Zeilen.
-  let block = blocks.find((b) => b.length >= 2 && isSeparator(splitRow(b[1]), true));
-  if (!block) block = blocks.find((b) => b.length >= 2 && pipeCount(b[0]) >= 2);
-  if (!block) return { ok: false, error: 'no-table' };
-
+function parseBlock(block) {
   const all = block.map(splitRow);
   const header = all[0];
   if (header.length < 3) return { ok: false, error: 'too-few-columns' };
-
-  const body = all.slice(1).filter((cells, i) => !(isSeparator(cells, i === 0) ));
+  const body = all.slice(1).filter((cells, i) => !isSeparator(cells, i === 0));
   const cols = header.slice(1).map(cleanCell);
   const n = cols.length;
   const rows = body
@@ -72,4 +65,47 @@ export function parseTable(text) {
     .filter((r) => r.name);
   if (!rows.length) return { ok: false, error: 'no-rows' };
   return { ok: true, cols, rows };
+}
+
+const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9äöüß]+/g, ' ').trim();
+function sameName(a, b) {
+  a = norm(a); b = norm(b);
+  return a !== '' && b !== '' && (a === b || a.includes(b) || b.includes(a));
+}
+function hits(names, products) {
+  return names.filter((n) => products.some((p) => sameName(n, p))).length;
+}
+/** Kriterien als Zeilen, Produkte als Spalten (Chatbots liefern gern die Transponierte). */
+function transpose(t) {
+  return {
+    ok: true,
+    transposed: true,
+    cols: t.rows.map((r) => r.name),
+    rows: t.cols.map((name, j) => ({ name, cells: t.rows.map((r) => r.cells[j]) })).filter((r) => r.name),
+  };
+}
+
+/**
+ * Liest die passende Tabelle aus beliebigem Text.
+ * Ohne `products` zählt die erste brauchbare Tabelle. Mit `products` gewinnt die Tabelle,
+ * deren Spalten oder Zeilen am besten zu den Produktnamen passen; liegen die Produkte in den
+ * Zeilen, wird transponiert. So stört eine vorangestellte Zusammenfassungstabelle nicht.
+ */
+export function parseTable(text, { products = [] } = {}) {
+  const blocks = findBlocks(String(text || '')).filter(
+    (b) => b.length >= 2 && (isSeparator(splitRow(b[1]), true) || pipeCount(b[0]) >= 2),
+  );
+  if (!blocks.length) return { ok: false, error: 'no-table' };
+  const results = blocks.map(parseBlock);
+  const valid = results.filter((r) => r.ok);
+  if (!valid.length) return results[0];
+  if (!products.length) return valid[0];
+  let best = null, bestScore = 0, bestTransposed = false;
+  for (const t of valid) {
+    const col = hits(t.cols, products), row = hits(t.rows.map((r) => r.name), products);
+    const sc = Math.max(col, row);
+    if (sc > bestScore) { best = t; bestScore = sc; bestTransposed = row > col && t.rows.length >= 2; }
+  }
+  if (!best) return valid[0];
+  return bestTransposed ? transpose(best) : best;
 }

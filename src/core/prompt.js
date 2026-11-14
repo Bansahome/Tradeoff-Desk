@@ -29,3 +29,12 @@ export function buildPrompt(state, tpl = defaultTemplate) {
   L.push(tpl.closing);
   return L.join('\n');
 }
+
+/** Folge-Prompt, wenn der Chatbot statt der Tabelle einen Bericht geliefert hat. */
+export function buildReformatPrompt(state, tpl = defaultTemplate) {
+  const r = tpl.reformat;
+  const L = [r.intro, '', r.table.split('{products}').join(state.products.join(' | '))];
+  activeCriteria(state.criteria).forEach((c, i) => L.push('   ' + (i + 1) + '. ' + c.name.trim()));
+  L.push('', r.cells, ...r.rest, '', r.closing);
+  return L.join('\n');
+}

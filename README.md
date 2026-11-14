@@ -14,7 +14,7 @@ Architekturentscheidungen scheitern selten an fehlenden Informationen, sondern a
 ## Ablauf in drei Schritten
 
 1. **Prompt bauen.** Einsatzzweck, Produkte oder Varianten, Kundenkontext und Hinweise eintragen, Kriterien ankreuzen (10 vorbelegt, eigene möglich). Daraus entsteht live ein Recherche-Prompt. Kopieren, in ChatGPT einfügen.
-2. **Bewerten.** Die Antwort (die Markdown-Tabelle reicht) einfügen und übernehmen. Pro Kriterium Gewicht 1 bis 5, pro Produkt Punkte 0 bis 5. Das Ranking mit Nutzwert und Erfüllungsgrad aktualisiert sich live. Alternativ ohne Antwort mit den gewählten Kriterien starten.
+2. **Bewerten.** Die Antwort (die Markdown-Tabelle reicht) einfügen und übernehmen. Pro Kriterium Gewicht 1 bis 5, pro Produkt Punkte 0 bis 5. Das Ranking mit Nutzwert und Erfüllungsgrad aktualisiert sich live. Alternativ ohne Antwort mit den gewählten Kriterien starten. Hat der Chatbot statt der Tabelle einen Bericht geliefert, steht in Schritt 2 ein Folge-Prompt zum Umformatieren bereit. Der Parser nimmt bei mehreren Tabellen die zu den Produkten passende und stellt gedrehte Tabellen (Produkte in Zeilen) um. Tipp: normalen Chat mit Websuche verwenden, nicht den Deep-Research-Modus, der das Tabellenformat oft ignoriert.
 3. **Export.** Nutzwertanalyse als Markdown, optional mit Obsidian-Frontmatter und Beschreibungen je Kriterium. Kopieren oder als `.md` herunterladen.
 
 Zusätzlich: **Sitzung speichern/laden** (kompletter Stand als JSON, zum Weitergeben an Kollegen) und ein **Kriterien-Editor** (Namen, Hinweise, Vorauswahl, Reihenfolge, Set als JSON speichern).

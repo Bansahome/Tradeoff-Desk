@@ -210,6 +210,15 @@ $('blankBtn').addEventListener('click', () => {
   st.textContent = ''; $('pasteBox').open = false;
   renderMatrix();
 });
+$('fileBtn').addEventListener('click', () => $('pastedFile').click());
+$('pastedFile').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const st = $('parseStatus');
+  try { $('pasted').value = await readFile(f); } catch (err) { flash(st, T.step2.fileError, 'warn'); return; }
+  S.pasted = $('pasted').value; save();
+  flash(st, T.step2.fileLoaded(f.name), 'ok');
+});
 $('pasted').addEventListener('input', (e) => { S.pasted = e.target.value; save(); });
 
 /* ---------- Schritt 2: Bewerten ---------- */

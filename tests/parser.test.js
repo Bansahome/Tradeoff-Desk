@@ -136,6 +136,19 @@ describe('parseTable mit Produkt-Hinweisen', () => {
   });
 });
 
+describe('Tabulatorgetrennte Kopie', () => {
+  it('liest eine aus der gerenderten Ansicht kopierte Tabelle (Tabs statt Pipes)', () => {
+    const t = 'Kriterium\tIntune\tWSUS\nFunktion\tCloud [1]\tNur Updates\nKosten\tin M365\tkostenlos';
+    const r = parseTable(t, { products: ['Intune', 'WSUS'] });
+    expect(r.ok).toBe(true);
+    expect(r.cols).toEqual(['Intune', 'WSUS']);
+    expect(r.rows[1]).toEqual({ name: 'Kosten', cells: ['in M365', 'kostenlos'] });
+  });
+  it('bevorzugt Pipe-Tabellen, wenn beides vorkommt', () => {
+    expect(parseTable(basic + '\n\na\tb\tc\nd\te\tf').cols).toEqual(['A', 'B']);
+  });
+});
+
 describe('Helfer', () => {
   it('splitRow trennt und trimmt', () => {
     expect(splitRow('| a | b \\| c | d |')).toEqual(['a', 'b | c', 'd']);

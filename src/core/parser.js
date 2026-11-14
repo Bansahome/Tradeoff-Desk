@@ -91,10 +91,19 @@ function transpose(t) {
  * deren Spalten oder Zeilen am besten zu den Produktnamen passen; liegen die Produkte in den
  * Zeilen, wird transponiert. So stört eine vorangestellte Zusammenfassungstabelle nicht.
  */
+/** Tabulatorgetrennte Zeilen (Kopie aus gerenderter Ansicht) in Pipe-Zeilen umschreiben. */
+function tabsToPipes(text) {
+  return text
+    .split(/\r?\n/)
+    .map((l) => (l.includes('\t') ? '| ' + l.split('\t').map((c) => c.trim()).join(' | ') + ' |' : l))
+    .join('\n');
+}
+const qualifies = (b) => b.length >= 2 && (isSeparator(splitRow(b[1]), true) || pipeCount(b[0]) >= 2);
+
 export function parseTable(text, { products = [] } = {}) {
-  const blocks = findBlocks(String(text || '')).filter(
-    (b) => b.length >= 2 && (isSeparator(splitRow(b[1]), true) || pipeCount(b[0]) >= 2),
-  );
+  const src = String(text || '');
+  let blocks = findBlocks(src).filter(qualifies);
+  if (!blocks.length && src.includes('\t')) blocks = findBlocks(tabsToPipes(src)).filter(qualifies);
   if (!blocks.length) return { ok: false, error: 'no-table' };
   const results = blocks.map(parseBlock);
   const valid = results.filter((r) => r.ok);

@@ -89,6 +89,13 @@ assert.match(await page.textContent('#parseStatus'), /Keine Tabelle erkannt/);
 assert.equal(await page.locator('#fixBox').evaluate((d) => d.open), true);
 assert.match(await page.inputValue('#fixOut'), /Genau eine Markdown-Tabelle[\s\S]*Intune \| WSUS \| baramundi/);
 step('Bericht ohne Tabelle: klare Meldung, Folge-Prompt sichtbar');
+// Datei-Import (.md aus dem Chat-Download)
+const mdFile = path.join(outDir, 'antwort.md');
+await (await import('node:fs/promises')).writeFile(mdFile, TABLE);
+await page.setInputFiles('#pastedFile', mdFile);
+await page.waitForFunction(() => document.getElementById('parseStatus').textContent.includes('eingelesen'));
+assert.match(await page.inputValue('#pasted'), /\| Kriterium \| Intune/);
+step('Datei laden: .md in das Einfügefeld übernommen');
 // Gedrehte Tabelle (Produkte in Zeilen) wird umgestellt
 await page.fill('#pasted', '| Produkt | Funktionsumfang | Lizenzierung und Kosten |\n|---|---|---|\n| Intune | a | b |\n| WSUS | c | d |\n| baramundi | e | f |');
 await page.click('#parseBtn');

@@ -1,9 +1,9 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Folge-Prompt > Snapshot 1`] = `
-"Formatiere dein Ergebnis um. Gib jetzt ausschließlich Folgendes aus, ohne Text davor:
+"Formatiere dein Ergebnis um. Gib jetzt ausschließlich Folgendes aus, ohne Text davor und danach: das komplette Ergebnis in genau EINEM Markdown-Codeblock (\`\`\`markdown … \`\`\`), damit ich den Rohtext mit einem Klick kopieren kann. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-antwort.md“ an. Inhalt des Codeblocks:
 
-1. Genau eine Markdown-Tabelle als normaler Text im Chat. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium mit genau diesen Namen:
+1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium mit genau diesen Namen:
    1. Funktionsumfang
    2. Lizenzierung und Kosten
    3. Betrieb und Administrationsaufwand
@@ -133,8 +133,9 @@ VORGABEN ZUR RECHERCHE
 - Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch.
 
 AUSGABEFORMAT (bitte exakt einhalten)
-WICHTIG: Beginne deine Antwort direkt mit der Tabelle. Kein Fließtext, keine Einleitung, kein Bericht davor. Die Tabelle ist das Hauptergebnis, nicht die Prosa. Recherchiere gründlich, aber gib nur das Ergebnis aus.
-1. Genau eine Markdown-Tabelle als normaler Text im Chat (nicht als Bild, Datei, Canvas oder Dokument). Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Keine weitere Tabelle, keine Zusammenfassungstabelle.
+WICHTIG: Beginne deine Antwort direkt mit dem Ergebnis. Kein Fließtext, keine Einleitung, kein Bericht davor. Recherchiere gründlich, aber gib nur das Ergebnis aus.
+FORMAT: Gib das komplette Ergebnis (Teil 1 bis 3) in genau EINEM Markdown-Codeblock aus, der mit \`\`\`markdown beginnt und mit \`\`\` endet, damit ich den Rohtext mit einem Klick kopieren kann. Außerhalb des Codeblocks steht nichts. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-antwort.md“ an.
+1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Keine weitere Tabelle, keine Zusammenfassungstabelle.
 2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.
 3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte.
 Gib keine Punktbewertung und keine Empfehlung ab, die Gewichtung und Bewertung mache ich selbst."
@@ -167,8 +168,9 @@ VORGABEN ZUR RECHERCHE
 - Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch.
 
 AUSGABEFORMAT (bitte exakt einhalten)
-WICHTIG: Beginne deine Antwort direkt mit der Tabelle. Kein Fließtext, keine Einleitung, kein Bericht davor. Die Tabelle ist das Hauptergebnis, nicht die Prosa. Recherchiere gründlich, aber gib nur das Ergebnis aus.
-1. Genau eine Markdown-Tabelle als normaler Text im Chat (nicht als Bild, Datei, Canvas oder Dokument). Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Keine weitere Tabelle, keine Zusammenfassungstabelle.
+WICHTIG: Beginne deine Antwort direkt mit dem Ergebnis. Kein Fließtext, keine Einleitung, kein Bericht davor. Recherchiere gründlich, aber gib nur das Ergebnis aus.
+FORMAT: Gib das komplette Ergebnis (Teil 1 bis 3) in genau EINEM Markdown-Codeblock aus, der mit \`\`\`markdown beginnt und mit \`\`\` endet, damit ich den Rohtext mit einem Klick kopieren kann. Außerhalb des Codeblocks steht nichts. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-antwort.md“ an.
+1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Keine weitere Tabelle, keine Zusammenfassungstabelle.
 2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.
 3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte.
 Gib keine Punktbewertung und keine Empfehlung ab, die Gewichtung und Bewertung mache ich selbst."

@@ -19,15 +19,16 @@
     "Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch."
   ],
   "output": [
-    "WICHTIG: Beginne deine Antwort direkt mit der Tabelle. Kein Fließtext, keine Einleitung, kein Bericht davor. Die Tabelle ist das Hauptergebnis, nicht die Prosa. Recherchiere gründlich, aber gib nur das Ergebnis aus.",
-    "1. Genau eine Markdown-Tabelle als normaler Text im Chat (nicht als Bild, Datei, Canvas oder Dokument). Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: {products}. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Keine weitere Tabelle, keine Zusammenfassungstabelle.",
+    "WICHTIG: Beginne deine Antwort direkt mit dem Ergebnis. Kein Fließtext, keine Einleitung, kein Bericht davor. Recherchiere gründlich, aber gib nur das Ergebnis aus.",
+    "FORMAT: Gib das komplette Ergebnis (Teil 1 bis 3) in genau EINEM Markdown-Codeblock aus, der mit ```markdown beginnt und mit ``` endet, damit ich den Rohtext mit einem Klick kopieren kann. Außerhalb des Codeblocks steht nichts. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-antwort.md“ an.",
+    "1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: {products}. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Keine weitere Tabelle, keine Zusammenfassungstabelle.",
     "2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.",
     "3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte."
   ],
   "closing": "Gib keine Punktbewertung und keine Empfehlung ab, die Gewichtung und Bewertung mache ich selbst.",
   "reformat": {
-    "intro": "Formatiere dein Ergebnis um. Gib jetzt ausschließlich Folgendes aus, ohne Text davor:",
-    "table": "1. Genau eine Markdown-Tabelle als normaler Text im Chat. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: {products}. Eine Zeile pro Kriterium mit genau diesen Namen:",
+    "intro": "Formatiere dein Ergebnis um. Gib jetzt ausschließlich Folgendes aus, ohne Text davor und danach: das komplette Ergebnis in genau EINEM Markdown-Codeblock (```markdown … ```), damit ich den Rohtext mit einem Klick kopieren kann. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-antwort.md“ an. Inhalt des Codeblocks:",
+    "table": "1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: {products}. Eine Zeile pro Kriterium mit genau diesen Namen:",
     "cells": "Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Übernimm die Inhalte aus deiner Recherche, erfinde nichts Neues und schreibe „nicht belegt“, wo etwas fehlt.",
     "rest": [
       "2. Darunter „Quellen“ als nummerierte Liste mit URL und Stand-Datum.",

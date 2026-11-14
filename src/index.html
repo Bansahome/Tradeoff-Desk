@@ -102,6 +102,8 @@
         <textarea class="mono short" id="pasted" placeholder="{{step2.pastePh}}"></textarea>
         <div class="bar-actions">
           <button type="button" class="btn primary" id="parseBtn">{{step2.parse}}</button>
+          <button type="button" class="btn" id="fileBtn">{{step2.loadFile}}</button>
+          <input type="file" id="pastedFile" accept=".md,.markdown,.txt,text/plain,text/markdown" hidden>
           <button type="button" class="btn" id="blankBtn">{{step2.blank}}</button>
           <span class="status" id="parseStatus" role="status"></span>
         </div>

@@ -67,7 +67,7 @@ export const de = {
     promptTitle: 'Prompt für ChatGPT',
     promptLabel: 'Fertiger Prompt',
     modeHint:
-      'Tipp: Normalen Chat mit aktivierter Websuche nutzen, nicht den Deep-Research-Modus. Deep Research liefert lange Berichte und hält sich selten an das Tabellenformat. Klappt es trotzdem nicht, hilft in Schritt 2 der Folge-Prompt.',
+      'Tipp: Normalen Chat mit aktivierter Websuche nutzen, nicht den Deep-Research-Modus. Deep Research liefert lange Berichte und hält sich selten an das Tabellenformat. Der Prompt verlangt die Antwort in einem Codeblock: dort den Kopieren-Button des Chats nutzen, nicht die gerenderte Tabelle markieren. Klappt es trotzdem nicht, hilft in Schritt 2 der Folge-Prompt oder der Datei-Import.',
     copyPrompt: 'Prompt kopieren',
     toStep2: 'Weiter zu Schritt 2',
     reset: 'Alles leeren',
@@ -83,6 +83,9 @@ export const de = {
     parse: 'Tabelle übernehmen',
     blank: 'Ohne Antwort bewerten',
     pasteHint: 'Ohne Antwort startest du mit den angekreuzten Kriterien und leeren Beschreibungen.',
+    loadFile: 'Datei laden (.md, .txt)',
+    fileLoaded: (name) => name + ' eingelesen. Jetzt „Tabelle übernehmen“.',
+    fileError: 'Datei konnte nicht gelesen werden.',
     fixTitle: 'Antwort war keine Tabelle? Folge-Prompt nutzen',
     fixHint:
       'Diesen Text im selben Chat nachschicken. Der Chatbot formatiert sein Ergebnis dann um. Die neue Antwort fügst du oben ein.',

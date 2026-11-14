@@ -1,0 +1,12 @@
+[
+  { "id": "funktion", "name": "Funktionsumfang", "hint": "Kernfunktionen, Lücken, Abdeckung der Anforderungen", "on": true },
+  { "id": "lizenz", "name": "Lizenzierung und Kosten", "hint": "Benötigte Lizenz oder SKU, Preismodell, Folgekosten", "on": true },
+  { "id": "betrieb", "name": "Betrieb und Administrationsaufwand", "hint": "Tägliche Pflege, Automatisierung, nötige Skills, Monitoring", "on": true },
+  { "id": "security", "name": "Security und Compliance", "hint": "Härtung, Berechtigungen, Zero-Trust-Eignung, Auditierbarkeit", "on": true },
+  { "id": "datenschutz", "name": "Datenschutz und Datenstandort", "hint": "DSGVO, EU Data Boundary, Auftragsverarbeitung, Telemetrie", "on": false },
+  { "id": "architektur", "name": "Architektur, Voraussetzungen und Skalierung", "hint": "Infrastruktur, Abhängigkeiten, Netzwerk, Identität, Größenordnung, Verfügbarkeit", "on": false },
+  { "id": "integration", "name": "Integration", "hint": "Entra ID, Intune, Defender, Drittsysteme, APIs und Graph", "on": false },
+  { "id": "migration", "name": "Einführung und Migration", "hint": "Aufwand, Vorgehen, Risiken, Koexistenz mit dem Bestand", "on": false },
+  { "id": "lifecycle", "name": "Lifecycle, Roadmap und Support", "hint": "Supportzeiträume, Abkündigungen, Herstellerstrategie", "on": false },
+  { "id": "praxis", "name": "Praxiserfahrung und Stolperfallen", "hint": "Bekannte Probleme und Grenzen im Kundenbetrieb", "on": true }
+]

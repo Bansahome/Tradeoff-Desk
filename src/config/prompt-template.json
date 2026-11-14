@@ -1,0 +1,27 @@
+{
+  "intro": "Du bist ein erfahrener Architekt für Microsoft-Infrastruktur und Consulting. Recherchiere aktuell im Web und vergleiche die folgenden Produkte bzw. Varianten für den genannten Einsatzzweck.",
+  "headings": {
+    "purpose": "EINSATZZWECK",
+    "products": "PRODUKTE / VARIANTEN",
+    "context": "KUNDENKONTEXT",
+    "notes": "ZUSÄTZLICHE HINWEISE",
+    "criteria": "KRITERIEN (genau diese Namen als Zeilen verwenden)",
+    "research": "VORGABEN ZUR RECHERCHE",
+    "output": "AUSGABEFORMAT (bitte exakt einhalten)"
+  },
+  "purposeMissing": "(nicht angegeben)",
+  "research": [
+    "Bevorzuge Primärquellen: Microsoft Learn, Herstellerdokumentation, offizielle Preis- und Lizenzseiten, Roadmaps. Foren und Blogs nur ergänzend und dann als solche kennzeichnen.",
+    "Jede Sachaussage bekommt eine Quelle (URL) und ein Stand-Datum.",
+    "Was du nicht belegen kannst, schreibst du als „nicht belegt“. Nichts raten, nichts schönreden.",
+    "Preview-Funktionen als Preview kennzeichnen, angekündigte als angekündigt, abgekündigte mit Datum.",
+    "Bei Lizenzthemen den genauen Plan bzw. die SKU nennen. Preise mit Währung, netto oder brutto und Stand.",
+    "Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch."
+  ],
+  "output": [
+    "1. Genau eine Markdown-Tabelle. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: {products}. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw.",
+    "2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.",
+    "3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte."
+  ],
+  "closing": "Gib keine Punktbewertung und keine Empfehlung ab, die Gewichtung und Bewertung mache ich selbst."
+}

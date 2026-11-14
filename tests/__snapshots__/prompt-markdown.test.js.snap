@@ -1,0 +1,156 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Markdown-Export > Snapshot mit Frontmatter und Beschreibungen 1`] = `
+"---
+typ: variantenbewertung
+datum: 2026-01-15
+varianten: [Intune, WSUS, "baramundi | Suite"]
+tags: [variantenbewertung]
+---
+
+# Variantenbewertung: Patch-Management für Windows-Clients
+
+**Kontext:** 800 Clients, hybrid Entra-joined, kleines IT-Team
+
+## Bewertungsmatrix
+
+Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
+
+| Kriterium | Gewicht | Intune | WSUS | baramundi \\| Suite |
+|---|:-:|:-:|:-:|:-:|
+| Funktionsumfang | 5 | 5 | 2 | 3 |
+| Lizenzierung und Kosten | 3 | 4 | – | 1 |
+| **Nutzwert** | 8 | **37** von 40 | **10** von 40 | **18** von 40 |
+| **Erfüllungsgrad** | | **93 %** | **25 %** | **45 %** |
+
+_Hinweis: 1 Feld ist nicht bewertet und zählt als 0._
+
+## Beschreibung je Kriterium
+
+### Funktionsumfang
+
+- **Intune:** Cloud-native. Mit Update Rings.
+- **WSUS:** Nur Updates | kein Cloud
+
+### Lizenzierung und Kosten
+
+- **Intune:** In M365 enthalten
+- **baramundi | Suite:** Eigene Lizenz
+"
+`;
+
+exports[`Markdown-Export > Snapshot ohne Beschreibungstexte, alles bewertet, ohne Zweck und Kontext 1`] = `
+"---
+typ: variantenbewertung
+datum: 2026-01-15
+varianten: [Intune, WSUS, "baramundi | Suite"]
+tags: [variantenbewertung]
+---
+
+# Variantenbewertung
+
+## Bewertungsmatrix
+
+Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
+
+| Kriterium | Gewicht | Intune | WSUS | baramundi \\| Suite |
+|---|:-:|:-:|:-:|:-:|
+| Funktionsumfang | 5 | 2 | 2 | 2 |
+| Lizenzierung und Kosten | 3 | 2 | 2 | 2 |
+| **Nutzwert** | 8 | **16** von 40 | **16** von 40 | **16** von 40 |
+| **Erfüllungsgrad** | | **40 %** | **40 %** | **40 %** |
+"
+`;
+
+exports[`Markdown-Export > Snapshot ohne Frontmatter und ohne Beschreibungen 1`] = `
+"# Variantenbewertung: Patch-Management für Windows-Clients
+
+**Kontext:** 800 Clients, hybrid Entra-joined, kleines IT-Team
+
+## Bewertungsmatrix
+
+Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
+
+| Kriterium | Gewicht | Intune | WSUS | baramundi \\| Suite |
+|---|:-:|:-:|:-:|:-:|
+| Funktionsumfang | 5 | 5 | 2 | 3 |
+| Lizenzierung und Kosten | 3 | 4 | – | 1 |
+| **Nutzwert** | 8 | **37** von 40 | **10** von 40 | **18** von 40 |
+| **Erfüllungsgrad** | | **93 %** | **25 %** | **45 %** |
+
+_Hinweis: 1 Feld ist nicht bewertet und zählt als 0._
+"
+`;
+
+exports[`Prompt-Builder > Snapshot mit Kontext und Hinweisen 1`] = `
+"Du bist ein erfahrener Architekt für Microsoft-Infrastruktur und Consulting. Recherchiere aktuell im Web und vergleiche die folgenden Produkte bzw. Varianten für den genannten Einsatzzweck.
+
+EINSATZZWECK
+Patch-Management für Windows-Clients
+
+PRODUKTE / VARIANTEN
+1. Intune
+2. WSUS
+3. baramundi
+
+KUNDENKONTEXT
+800 Clients, hybrid Entra-joined,
+kleines IT-Team
+
+ZUSÄTZLICHE HINWEISE
+Offline-Standorte prüfen
+
+KRITERIEN (genau diese Namen als Zeilen verwenden)
+1. Funktionsumfang – Kernfunktionen, Lücken, Abdeckung der Anforderungen
+2. Lizenzierung und Kosten – Benötigte Lizenz oder SKU, Preismodell, Folgekosten
+3. Betrieb und Administrationsaufwand – Tägliche Pflege, Automatisierung, nötige Skills, Monitoring
+4. Security und Compliance – Härtung, Berechtigungen, Zero-Trust-Eignung, Auditierbarkeit
+5. Praxiserfahrung und Stolperfallen – Bekannte Probleme und Grenzen im Kundenbetrieb
+
+VORGABEN ZUR RECHERCHE
+- Bevorzuge Primärquellen: Microsoft Learn, Herstellerdokumentation, offizielle Preis- und Lizenzseiten, Roadmaps. Foren und Blogs nur ergänzend und dann als solche kennzeichnen.
+- Jede Sachaussage bekommt eine Quelle (URL) und ein Stand-Datum.
+- Was du nicht belegen kannst, schreibst du als „nicht belegt“. Nichts raten, nichts schönreden.
+- Preview-Funktionen als Preview kennzeichnen, angekündigte als angekündigt, abgekündigte mit Datum.
+- Bei Lizenzthemen den genauen Plan bzw. die SKU nennen. Preise mit Währung, netto oder brutto und Stand.
+- Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch.
+
+AUSGABEFORMAT (bitte exakt einhalten)
+1. Genau eine Markdown-Tabelle. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw.
+2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.
+3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte.
+Gib keine Punktbewertung und keine Empfehlung ab, die Gewichtung und Bewertung mache ich selbst."
+`;
+
+exports[`Prompt-Builder > Snapshot mit leeren Optionalfeldern und Fallback beim Zweck 1`] = `
+"Du bist ein erfahrener Architekt für Microsoft-Infrastruktur und Consulting. Recherchiere aktuell im Web und vergleiche die folgenden Produkte bzw. Varianten für den genannten Einsatzzweck.
+
+EINSATZZWECK
+(nicht angegeben)
+
+PRODUKTE / VARIANTEN
+1. Intune
+2. WSUS
+3. baramundi
+
+KRITERIEN (genau diese Namen als Zeilen verwenden)
+1. Funktionsumfang – Kernfunktionen, Lücken, Abdeckung der Anforderungen
+2. Lizenzierung und Kosten – Benötigte Lizenz oder SKU, Preismodell, Folgekosten
+3. Betrieb und Administrationsaufwand – Tägliche Pflege, Automatisierung, nötige Skills, Monitoring
+4. Security und Compliance – Härtung, Berechtigungen, Zero-Trust-Eignung, Auditierbarkeit
+5. Praxiserfahrung und Stolperfallen – Bekannte Probleme und Grenzen im Kundenbetrieb
+
+VORGABEN ZUR RECHERCHE
+- Bevorzuge Primärquellen: Microsoft Learn, Herstellerdokumentation, offizielle Preis- und Lizenzseiten, Roadmaps. Foren und Blogs nur ergänzend und dann als solche kennzeichnen.
+- Jede Sachaussage bekommt eine Quelle (URL) und ein Stand-Datum.
+- Was du nicht belegen kannst, schreibst du als „nicht belegt“. Nichts raten, nichts schönreden.
+- Preview-Funktionen als Preview kennzeichnen, angekündigte als angekündigt, abgekündigte mit Datum.
+- Bei Lizenzthemen den genauen Plan bzw. die SKU nennen. Preise mit Währung, netto oder brutto und Stand.
+- Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch.
+
+AUSGABEFORMAT (bitte exakt einhalten)
+1. Genau eine Markdown-Tabelle. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: Intune | WSUS | baramundi. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw.
+2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.
+3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte.
+Gib keine Punktbewertung und keine Empfehlung ab, die Gewichtung und Bewertung mache ich selbst."
+`;

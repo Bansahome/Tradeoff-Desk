@@ -4,7 +4,8 @@
 src/
   core/        reine Funktionen, kein DOM, kein Storage
     parser.js    Markdown-Tabelle -> { ok, cols, rows } | { ok:false, error }
-    calc.js      Nutzwert, Erfüllungsgrad, Ranking
+    calc.js      Nutzwert, Erfüllungsgrad, K.-o.-Ausscheiden, Ranking
+    sensitivity.js  Belastbarkeit: Dominanz, Gewichts- und Punkte-Kipppunkte
     prompt.js    Prompt-Builder (Vorlage aus config/)
     markdown.js  Export der Nutzwertanalyse
     state.js     Startzustand, Normalisierung, Sitzungs- und Kriterien-Dateien

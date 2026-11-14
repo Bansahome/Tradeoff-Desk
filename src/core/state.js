@@ -3,6 +3,7 @@
  */
 import defaultCriteria from '../config/criteria.json';
 import { activeCriteria } from './util.js';
+import { splitCheck } from './parser.js';
 
 export const APP_ID = 'tradeoff-desk';
 export const SESSION_VERSION = 1;
@@ -27,6 +28,8 @@ export function freshState() {
     details: true,
     suggest: false,
     sugExport: true,
+    sensExport: true,
+    note: { decision: '', assumptions: '', risks: '' },
   };
 }
 
@@ -40,6 +43,7 @@ export function emptyState(prev) {
     s.frontmatter = prev.frontmatter;
     s.details = prev.details;
     s.sugExport = prev.sugExport;
+    s.sensExport = prev.sensExport;
   }
   return s;
 }
@@ -50,6 +54,7 @@ export function newId() {
   return 'c' + Date.now().toString(36) + idCounter.toString(36);
 }
 
+export const CHECKS = ['ok', 'fix', 'old', 'unproven'];
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const str = (v) => (typeof v === 'string' ? v : '');
 
@@ -90,6 +95,9 @@ export function normalizeState(raw) {
         }),
         sug: normSug(r.sug, cols.length),
         weightSet: !!r.weightSet,
+        ko: !!r.ko,
+        koMin: Math.min(5, Math.max(1, Math.round(Number(r.koMin)) || 1)),
+        checks: cols.map((_, j) => (Array.isArray(r.checks) && CHECKS.includes(r.checks[j]) ? r.checks[j] : null)),
       };
     })
     .filter((r) => r.name);
@@ -106,19 +114,66 @@ export function normalizeState(raw) {
     details: raw.details === undefined ? true : !!raw.details,
     suggest: !!raw.suggest,
     sugExport: raw.sugExport === undefined ? true : !!raw.sugExport,
+    sensExport: raw.sensExport === undefined ? true : !!raw.sensExport,
+    note: {
+      decision: str(isObj(raw.note) ? raw.note.decision : ''),
+      assumptions: str(isObj(raw.note) ? raw.note.assumptions : ''),
+      risks: str(isObj(raw.note) ? raw.note.risks : ''),
+    },
   };
 }
 
 /** Tabelle aus dem Parser -> Bewertungszeilen (Gewicht 3, noch keine Punkte). */
 export function rowsFromTable(table, sugs = null) {
-  return table.rows.map((r, i) => ({
-    name: r.name,
-    weight: DEFAULT_WEIGHT,
-    cells: r.cells.slice(),
-    scores: table.cols.map(() => null),
-    sug: normSug(sugs && sugs[i], table.cols.length),
-    weightSet: false,
-  }));
+  return table.rows.map((r, i) => {
+    const parts = r.cells.map(splitCheck);
+    return {
+      name: r.name,
+      weight: DEFAULT_WEIGHT,
+      cells: parts.map((x) => x.text),
+      scores: table.cols.map(() => null),
+      sug: normSug(sugs && sugs[i], table.cols.length),
+      weightSet: false,
+      ko: false,
+      koMin: 1,
+      checks: parts.map((x) => x.check),
+    };
+  });
+}
+
+const key = (s) => String(s).trim().toLowerCase();
+
+/**
+ * Übernimmt Bewertung (Gewicht, Punkte, K.-o., Vorschläge) aus dem bisherigen Zustand in neu eingelesene Zeilen,
+ * wenn Kriterium und Produkt gleich heißen. -> true, wenn dabei nichts verloren geht.
+ */
+export function carryOver(prev, newCols, newRows) {
+  let lost = false;
+  const oldIdx = (name) => prev.cols.findIndex((c) => key(c) === key(name));
+  prev.rows.forEach((old) => {
+    if (!newRows.some((r) => key(r.name) === key(old.name))) {
+      if (old.scores.some((x) => x !== null)) lost = true;
+    }
+  });
+  prev.cols.forEach((c, j) => {
+    if (!newCols.some((n) => key(n) === key(c)) && prev.rows.some((r) => r.scores[j] !== null)) lost = true;
+  });
+  newRows.forEach((r) => {
+    const old = prev.rows.find((o) => key(o.name) === key(r.name));
+    if (!old) return;
+    r.weight = old.weight; r.weightSet = old.weightSet; r.ko = old.ko; r.koMin = old.koMin;
+    newCols.forEach((c, j) => {
+      const k = oldIdx(c);
+      if (k >= 0) r.scores[j] = old.scores[k];
+    });
+    if (!r.sug && old.sug) {
+      r.sug = normSug({
+        weight: old.sug.weight,
+        scores: newCols.map((c) => { const k = oldIdx(c); return k >= 0 ? old.sug.scores[k] : null; }),
+      }, newCols.length);
+    }
+  });
+  return !lost;
 }
 
 /** „Ohne Antwort bewerten“: leere Beschreibungen für die gewählten Kriterien. */
@@ -131,6 +186,9 @@ export function blankRows(state) {
     scores: cols.map(() => null),
     sug: null,
     weightSet: false,
+    ko: false,
+    koMin: 1,
+    checks: cols.map(() => null),
   }));
   return { cols, rows };
 }
@@ -188,4 +246,11 @@ export function applyOpenSuggestions(state) {
     });
   });
   return n;
+}
+
+/** Anzahl je Ergebnis der Gegenprüfung. */
+export function checkCounts(state) {
+  const c = { ok: 0, fix: 0, old: 0, unproven: 0 };
+  state.rows.forEach((r) => (r.checks || []).forEach((x) => { if (x) c[x]++; }));
+  return c;
 }

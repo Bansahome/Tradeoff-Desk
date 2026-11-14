@@ -7,7 +7,7 @@
 
 ## Prompt-Vorlage
 
-`src/config/prompt-template.json` enthält alle festen Textbausteine: Einleitung, Überschriften, Recherche-Vorgaben, Ausgabeformat und Schlusssatz. `{products}` wird durch die Produktliste ersetzt. Nach einer Änderung `npm test` laufen lassen. Die Snapshot-Tests zeigen dir den Diff, mit `npx vitest run -u` übernimmst du ihn.
+`src/config/prompt-template.json` enthält alle festen Textbausteine: Einleitung, Überschriften, Recherche-Vorgaben, Ausgabeformat und Schlusssatz. `{products}` wird durch die Produktliste ersetzt. Varianten: `output`/`closing` (ohne Modellvorschlag), `outputSuggest`/`closingSuggest` (mit Bewertungsvorschlag), `reformat` (Folge-Prompt) und `crosscheck` (Gegenprüfung durch ein zweites Modell, inklusive der vier Prüf-Tags `[OK]`, `[KORRIGIERT]`, `[VERALTET]`, `[NICHT BELEGT]`, die der Parser erkennt: ändere sie nur gemeinsam mit `splitCheck` in `src/core/parser.js`). Nach einer Änderung `npm test` laufen lassen. Die Snapshot-Tests zeigen dir den Diff, mit `npx vitest run -u` übernimmst du ihn.
 
 ## Texte und Sprache
 

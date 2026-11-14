@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { slugify, formatDate, activeCriteria } from '../src/core/util.js';
 import {
-  countSuggestions, applyOpenSuggestions,
+  countSuggestions, applyOpenSuggestions, carryOver, checkCounts,
   freshState, emptyState, normalizeState, rowsFromTable, blankRows, hasScores,
   serializeSession, parseSession, serializeCriteriaSet, parseCriteriaSet,
 } from '../src/core/state.js';
@@ -50,13 +50,13 @@ describe('state', () => {
     expect(s.products).toEqual(['A', 'B']);
     expect(s.criteria).toHaveLength(1);
     expect(s.criteria[0].on).toBe(true);
-    expect(s.rows).toEqual([{ name: 'R', weight: 5, cells: ['x', ''], scores: [null, 3], sug: null, weightSet: false }]);
+    expect(s.rows).toEqual([{ name: 'R', weight: 5, cells: ['x', ''], scores: [null, 3], sug: null, weightSet: false, ko: false, koMin: 1, checks: [null, null] }]);
     expect(s.frontmatter).toBe(true);
   });
 
   it('rowsFromTable und blankRows setzen Gewicht 3 und keine Punkte', () => {
     const t = { cols: ['A', 'B'], rows: [{ name: 'K', cells: ['x', 'y'] }] };
-    expect(rowsFromTable(t)).toEqual([{ name: 'K', weight: 3, cells: ['x', 'y'], scores: [null, null], sug: null, weightSet: false }]);
+    expect(rowsFromTable(t)).toEqual([{ name: 'K', weight: 3, cells: ['x', 'y'], scores: [null, null], sug: null, weightSet: false, ko: false, koMin: 1, checks: [null, null] }]);
     const b = blankRows(freshState());
     expect(b.cols).toEqual(['Intune', 'WSUS', 'baramundi']);
     expect(b.rows).toHaveLength(5);
@@ -76,7 +76,9 @@ describe('Sitzung und Kriterien-Vorlage', () => {
     const s = freshState();
     s.cols = ['A', 'B'];
     s.suggest = true;
-    s.rows = [{ name: 'K', weight: 4, cells: ['x', 'y'], scores: [5, null], weightSet: true, sug: { weight: { value: 4, why: 'wichtig' }, scores: [{ value: 5, why: 'gut' }, null] } }];
+    s.note = { decision: 'Intune', assumptions: 'A', risks: 'R' };
+    s.sensExport = false;
+    s.rows = [{ name: 'K', weight: 4, cells: ['x', 'y'], scores: [5, null], weightSet: true, ko: true, koMin: 2, checks: ['fix', null], sug: { weight: { value: 4, why: 'wichtig' }, scores: [{ value: 5, why: 'gut' }, null] } }];
     const res = parseSession(serializeSession(s, new Date('2026-01-01T00:00:00Z')));
     expect(res.ok).toBe(true);
     expect(res.state).toEqual(s);
@@ -126,5 +128,47 @@ describe('Modellvorschläge im Zustand', () => {
   it('normalizeState verwirft kaputte Vorschläge', () => {
     const s = normalizeState({ products: [], criteria: [], cols: ['A'], rows: [{ name: 'K', weight: 3, cells: [], scores: [], sug: { weight: { value: 9 }, scores: [{ value: 7 }] } }] });
     expect(s.rows[0].sug).toBeNull();
+  });
+});
+
+describe('Erweiterte Felder', () => {
+  it('normalizeState repariert K.-o.-Mindestpunkte, Prüfmarker und Notizen', () => {
+    const s = normalizeState({
+      products: [], criteria: [], cols: ['A', 'B'],
+      rows: [{ name: 'K', weight: 3, cells: [], scores: [], ko: 1, koMin: 9, checks: ['ok', 'quatsch'] }],
+      note: { decision: 'X', assumptions: 5 },
+    });
+    expect(s.rows[0]).toMatchObject({ ko: true, koMin: 5, checks: ['ok', null] });
+    expect(s.note).toEqual({ decision: 'X', assumptions: '', risks: '' });
+    expect(s.sensExport).toBe(true);
+  });
+  it('alte Sitzungen ohne neue Felder laden mit sinnvollen Standardwerten', () => {
+    const s = normalizeState({ products: [], criteria: [], cols: ['A'], rows: [{ name: 'K', weight: 2, cells: ['x'], scores: [3] }] });
+    expect(s.rows[0]).toMatchObject({ ko: false, koMin: 1, checks: [null], weightSet: false });
+    expect(s.note).toEqual({ decision: '', assumptions: '', risks: '' });
+  });
+  it('rowsFromTable trennt Prüf-Tags vom Zelltext', () => {
+    const t = { cols: ['A', 'B', 'C', 'D'], rows: [{ name: 'K', cells: ['[OK] ja', '[KORRIGIERT] doch nein', '[nicht belegt]', 'ohne Tag'] }] };
+    const r = rowsFromTable(t)[0];
+    expect(r.cells).toEqual(['ja', 'doch nein', '', 'ohne Tag']);
+    expect(r.checks).toEqual(['ok', 'fix', 'unproven', null]);
+    expect(checkCounts({ rows: [r] })).toEqual({ ok: 1, fix: 1, old: 0, unproven: 1 });
+  });
+  it('carryOver übernimmt Bewertung bei gleicher Struktur, auch bei geänderter Spaltenreihenfolge', () => {
+    const prev = freshState();
+    prev.cols = ['A', 'B'];
+    prev.rows = [{ name: 'K1', weight: 5, weightSet: true, ko: true, koMin: 2, cells: ['', ''], scores: [4, 1], sug: null, checks: [null, null] }];
+    const rows = rowsFromTable({ cols: ['B', 'A'], rows: [{ name: 'k1', cells: ['x', 'y'] }] });
+    expect(carryOver(prev, ['B', 'A'], rows)).toBe(true);
+    expect(rows[0]).toMatchObject({ weight: 5, weightSet: true, ko: true, koMin: 2, scores: [1, 4] });
+  });
+  it('carryOver meldet Verlust, wenn bewertete Kriterien oder Produkte fehlen', () => {
+    const prev = freshState();
+    prev.cols = ['A', 'B'];
+    prev.rows = [{ name: 'K1', weight: 3, cells: ['', ''], scores: [4, 1], checks: [null, null] }];
+    const missingRow = rowsFromTable({ cols: ['A', 'B'], rows: [{ name: 'Anderes', cells: ['', ''] }] });
+    expect(carryOver(prev, ['A', 'B'], missingRow)).toBe(false);
+    const missingCol = rowsFromTable({ cols: ['A', 'C'], rows: [{ name: 'K1', cells: ['', ''] }] });
+    expect(carryOver(prev, ['A', 'C'], missingCol)).toBe(false);
   });
 });

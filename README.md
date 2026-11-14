@@ -19,6 +19,13 @@ Architekturentscheidungen scheitern selten an fehlenden Informationen, sondern a
 **Optional: Bewertungsvorschlag des Modells.** In Schritt 1 lässt sich ein Vorschlag mit Begründung anfordern. Das Modell liefert eine zweite Tabelle (Gewicht und Punkte je Produkt, jeweils „Zahl – Begründung“). Schritt 2 zeigt sie neben den Beschreibungen, die vorgeschlagene Zahl ist markiert. In die Rechnung gehen nur deine Werte; Vorschläge übernimmst du einzeln oder gesammelt für offene Felder. Der Export kann Vorschlag, Begründung und deinen endgültigen Wert gegenüberstellen.
 3. **Export.** Nutzwertanalyse als Markdown, optional mit Obsidian-Frontmatter und Beschreibungen je Kriterium. Kopieren oder als `.md` herunterladen.
 
+Für belastbare Entscheidungen gibt es dazu:
+
+- **K.-o.-Kriterien.** Pro Kriterium in Schritt 2 als „K.-o.-Kriterium“ markierbar, mit Mindestpunktzahl (Standard: 0 Punkte scheiden aus). Ein Produkt darunter bleibt mit seinem Nutzwert sichtbar, steht aber am Ende des Rankings, ist als ausgeschieden mit Grund markiert und kann nicht Platz 1 sein. Offene K.-o.-Felder werden gezählt und scheiden nicht aus.
+- **Belastbarkeit des Ergebnisses.** Die App prüft, ob Platz 1 stabil ist: ob das führende Produkt in keinem Kriterium schlechter ist (dann hängt das Ergebnis nicht von den Gewichten ab), ob ein einzelnes Gewicht oder ein Punkt bei einer einzelnen Bewertung die Spitze ändert, und nennt Abstand und konkrete Kipp-Punkte. Gerechnet wird komplett im Browser.
+- **Entscheidungsnotiz.** In Schritt 3 drei optionale Felder (Entscheidung, Annahmen, Risiken und offene Punkte), die als eigener Abschnitt im Export landen. Zusammen mit Matrix, K.-o.-Status und Belastbarkeit ergibt das eine kleine Entscheidungsvorlage.
+- **Gegenprüfung durch ein zweites Modell (optional).** In Schritt 2 gibt es einen Prompt mit deiner eingelesenen Tabelle für das *andere* Modell: es prüft jede Zelle gegen Primärquellen und markiert sie mit `[OK]`, `[KORRIGIERT]`, `[VERALTET]` oder `[NICHT BELEGT]`. Fügst du die Antwort wieder ein, zeigt die App die Markierungen als Badges, korrigiert die Texte und behält deine Bewertung, Gewichte und K.-o.-Einstellungen, sofern Kriterien und Produkte gleich heißen.
+
 Zusätzlich: **Sitzung speichern/laden** (kompletter Stand als JSON, zum Weitergeben an Kollegen) und ein **Kriterien-Editor** (Namen, Hinweise, Vorauswahl, Reihenfolge, Set als JSON speichern).
 
 ## So nutzt du es

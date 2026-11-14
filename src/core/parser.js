@@ -162,3 +162,11 @@ export function parseSuggestions(text, table) {
   });
   return out.some(Boolean) ? out : null;
 }
+
+/** Markierungen aus der Gegenprüfung am Zellanfang: [OK], [KORRIGIERT], [VERALTET], [NICHT BELEGT]. */
+const CHECK_MAP = { OK: 'ok', KORRIGIERT: 'fix', VERALTET: 'old', 'NICHT BELEGT': 'unproven' };
+export function splitCheck(text) {
+  const m = String(text).match(/^\s*\[\s*(OK|KORRIGIERT|VERALTET|NICHT[ _]BELEGT)\s*\]\s*[-–—:]?\s*([\s\S]*)$/i);
+  if (!m) return { check: null, text: String(text) };
+  return { check: CHECK_MAP[m[1].toUpperCase().replace('_', ' ')], text: m[2].trim() };
+}

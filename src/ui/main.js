@@ -3,12 +3,13 @@ import { de as T } from '../strings.js';
 import { $, esc, download, readFile, flash, copyFrom } from './dom.js';
 import { parseTable, parseSuggestions } from '../core/parser.js';
 import { calc, rank } from '../core/calc.js';
-import { buildPrompt, buildReformatPrompt, promptStatus } from '../core/prompt.js';
+import { sensitivity, sensitivityLines } from '../core/sensitivity.js';
+import { buildPrompt, buildReformatPrompt, buildCrosscheckPrompt, crosscheckStatus, promptStatus } from '../core/prompt.js';
 import { buildMarkdown } from '../core/markdown.js';
 import { activeCriteria, formatDate, slugify } from '../core/util.js';
 import {
   freshState, emptyState, normalizeState, rowsFromTable, blankRows, hasScores, newId, cloneCriteria,
-  countSuggestions, applyOpenSuggestions,
+  countSuggestions, applyOpenSuggestions, carryOver, checkCounts,
   serializeSession, parseSession, serializeCriteriaSet, parseCriteriaSet,
 } from '../core/state.js';
 
@@ -197,10 +198,17 @@ $('parseBtn').addEventListener('click', () => {
   S.pasted = $('pasted').value; save();
   const res = parseTable(S.pasted, { products: S.products });
   if (!res.ok) { flash(st, T.step2.parseErrors[res.error], 'warn'); $('fixBox').open = true; return; }
-  if (hasScores(S) && !window.confirm(T.step2.overwriteConfirm)) return;
   const sugs = parseSuggestions(S.pasted, res);
-  S.cols = res.cols; S.rows = rowsFromTable(res, sugs); save();
-  flash(st, T.step2.parsed(res.rows.length, res.cols.length) + (res.transposed ? T.step2.transposed : '') + (sugs ? T.step2.parsedSug(countSuggestions(S)) : ''), 'ok');
+  const rows = rowsFromTable(res, sugs);
+  let carried = false;
+  if (S.rows.length && hasScores(S)) {
+    const safe = carryOver(S, res.cols, rows);
+    if (!safe && !window.confirm(T.step2.overwriteConfirm)) return;
+    carried = true;
+  }
+  S.cols = res.cols; S.rows = rows; save();
+  const nChecks = rows.reduce((n, r) => n + r.checks.filter(Boolean).length, 0);
+  flash(st, T.step2.parsed(res.rows.length, res.cols.length) + (res.transposed ? T.step2.transposed : '') + (sugs ? T.step2.parsedSug(countSuggestions(S)) : '') + (nChecks ? T.step2.parsedChecks(nChecks) : '') + (carried ? T.step2.carried : ''), 'ok');
   $('pasteBox').open = false;
   renderMatrix();
 });
@@ -238,8 +246,17 @@ function sugLine(sg, act, r, p) {
   return '<p class="sugtxt"><span><b>' + esc(T.step2.sugLabel) + ' ' + sg.value + '</b>' + (sg.why ? ' – ' + esc(sg.why) : '') + '</span>' +
     '<button type="button" class="linkbtn" data-act="' + act + '" data-r="' + r + '" data-p="' + p + '" data-v="' + sg.value + '">' + esc(T.step2.take) + '</button></p>';
 }
+function updateCross() {
+  const ok = crosscheckStatus(S).ok;
+  $('crossNeed').hidden = ok;
+  $('crossOut').hidden = !ok;
+  $('copyCross').disabled = !ok;
+  $('crossOut').value = ok ? buildCrosscheckPrompt(S) : '';
+}
+$('copyCross').addEventListener('click', () => copyFrom($('crossOut'), $('crossStatus'), T.copy));
 function renderMatrix() {
   const box = $('matrix');
+  updateCross();
   if (!S.rows.length) {
     box.innerHTML = '<div class="card empty-state">' + esc(T.step2.empty) + '</div>';
     $('pasteBox').open = true;
@@ -253,13 +270,25 @@ function renderMatrix() {
   }
   const c = calc(S.rows, S.cols.length);
   let h = '<div class="card"><h2>' + esc(T.step2.summary) + '</h2><div class="rank">';
-  rank(S.cols, c).forEach((o) => {
-    h += '<div class="rank-row"><div class="rank-name">' + esc(o.name) + '</div><div class="track" aria-hidden="true"><div class="fill" style="width:' + o.percent + '%"></div></div><div class="num">' + esc(T.step2.rankValue(o.total, c.max, o.percent)) + '</div></div>';
+  const rk = rank(S.cols, c);
+  const top = rk.findIndex((o) => !o.eliminated);
+  rk.forEach((o, idx) => {
+    h += '<div class="rank-row' + (idx === top ? ' top' : '') + (o.eliminated ? ' out' : '') + '"><div class="rank-name">' + esc(o.name) +
+      (o.eliminated ? '<span class="outtag">' + esc(T.step2.out(o.reasons)) + '</span>' : '') +
+      '</div><div class="track" aria-hidden="true"><div class="fill" style="width:' + o.percent + '%"></div></div><div class="num">' + esc(T.step2.rankValue(o.total, c.max, o.percent)) + '</div></div>';
   });
   h += '</div>';
   h += c.missing > 0
     ? '<p class="status warn" style="margin:12px 0 0">' + esc(T.step2.missing(c.missing)) + '</p>'
     : '<p class="status ok" style="margin:12px 0 0">' + esc(T.step2.allDone) + '</p>';
+  const cc = checkCounts(S);
+  if (cc.ok + cc.fix + cc.old + cc.unproven > 0) h += '<p class="status" style="margin:6px 0 0">' + esc(T.step2.checksLine(cc)) + '</p>';
+  if (hasScores(S)) {
+    const sv = sensitivity(S.rows, S.cols);
+    const ln = sensitivityLines(sv, T.sens);
+    h += '<div class="sens"><h3>' + esc(T.sens.title) + '</h3><p class="v-' + (sv.ok ? sv.verdict : 'none') + '">' + esc(ln.headline) + '</p>' +
+      (ln.details.length ? '<ul>' + ln.details.map((d) => '<li>' + esc(d) + '</li>').join('') + '</ul>' : '') + '</div>';
+  }
   const nSug = countSuggestions(S);
   h += '<div class="bar-actions"><button type="button" class="btn primary" data-act="toExport" data-r="" data-p="">' + esc(T.step2.toExport) + '</button>' +
     (nSug ? '<button type="button" class="btn" data-act="takeAll" data-r="" data-p="">' + esc(T.step2.takeAll) + '</button>' : '') + '</div></div>';
@@ -267,10 +296,15 @@ function renderMatrix() {
   S.rows.forEach((r, i) => {
     h += '<article class="crit"><div class="crit-head"><h3>' + esc(r.name) + '</h3><div class="w"><span>' + esc(T.step2.weight) + '</span>' +
       seg('weight', i, 0, 1, 5, r.weight, T.step2.weightFor(r.name), r.sug && r.sug.weight ? r.sug.weight.value : null) +
-      '<button type="button" class="linkbtn" data-act="rmRow" data-r="' + i + '" data-p="0" aria-label="' + esc(T.step2.removeRowAria(r.name)) + '">' + esc(T.step2.removeRow) + '</button></div></div>' + sugLine(r.sug && r.sug.weight, 'takeWeight', i, 0) + '<div class="prods">';
+      '<button type="button" class="linkbtn" data-act="rmRow" data-r="' + i + '" data-p="0" aria-label="' + esc(T.step2.removeRowAria(r.name)) + '">' + esc(T.step2.removeRow) + '</button></div></div>' + sugLine(r.sug && r.sug.weight, 'takeWeight', i, 0) +
+      '<div class="ko"><label><input type="checkbox" data-act="ko" data-r="' + i + '" data-p="0"' + (r.ko ? ' checked' : '') + '> ' + esc(T.step2.ko) + '</label>' +
+      (r.ko ? '<span>' + esc(T.step2.koMin) + '</span>' + seg('koMin', i, 0, 1, 5, r.koMin || 1, T.step2.koMinFor(r.name)) : '') + '</div><div class="prods">';
     S.cols.forEach((pn, j) => {
       const t = r.cells[j] || '';
-      h += '<div class="prod"><h4>' + esc(pn) + '</h4><p class="txt' + (t ? '' : ' empty') + '">' + esc(t || T.step2.noDesc) + '</p>' +
+      const ck = r.checks && r.checks[j];
+      const koFail = r.ko && r.scores[j] !== null && r.scores[j] !== undefined && r.scores[j] < (r.koMin || 1);
+      h += '<div class="prod"><h4>' + esc(pn) + '</h4>' + (ck ? '<span class="badge ' + ck + '">' + esc(T.step2.checks[ck]) + '</span>' : '') +
+        '<p class="txt' + (t ? '' : ' empty') + '">' + esc(t || T.step2.noDesc) + '</p>' + (koFail ? '<p class="koflag">' + esc(T.step2.koFail) + '</p>' : '') +
         seg('score', i, j, 0, 5, r.scores[j], T.step2.scoreFor(pn, r.name), r.sug && r.sug.scores[j] ? r.sug.scores[j].value : null) +
         sugLine(r.sug && r.sug.scores[j], 'takeScore', i, j) + '</div>';
     });
@@ -289,6 +323,8 @@ $('matrix').addEventListener('click', (e) => {
   else if (act === 'takeScore') S.rows[r].scores[p] = v;
   else if (act === 'takeWeight') { S.rows[r].weight = v; S.rows[r].weightSet = true; }
   else if (act === 'takeAll') applyOpenSuggestions(S);
+  else if (act === 'ko') S.rows[r].ko = !S.rows[r].ko;
+  else if (act === 'koMin') S.rows[r].koMin = v;
   else if (act === 'rmRow') S.rows.splice(r, 1);
   save(); renderMatrix();
 });
@@ -301,6 +337,7 @@ function renderExport() {
   $('optFront').checked = !!S.frontmatter;
   $('optDetails').checked = !!S.details;
   $('optSug').checked = !!S.sugExport;
+  $('optSens').checked = !!S.sensExport;
   const st = $('mdStatus');
   if (!S.rows.length) {
     $('mdOut').value = ''; flash(st, T.step3.noData, 'warn');
@@ -312,6 +349,10 @@ function renderExport() {
   $('mdOut').value = buildMarkdown(S, { date: formatDate(new Date()) });
 }
 $('optFront').addEventListener('change', (e) => { S.frontmatter = e.target.checked; save(); renderExport(); });
+['decision', 'assumptions', 'risks'].forEach((k) => {
+  $('note' + k[0].toUpperCase() + k.slice(1)).addEventListener('input', (e) => { S.note[k] = e.target.value; save(); renderExport(); });
+});
+$('optSens').addEventListener('change', (e) => { S.sensExport = e.target.checked; save(); renderExport(); });
 $('optSug').addEventListener('change', (e) => { S.sugExport = e.target.checked; save(); renderExport(); });
 $('optDetails').addEventListener('change', (e) => { S.details = e.target.checked; save(); renderExport(); });
 $('dlMd').addEventListener('click', () => {
@@ -346,6 +387,7 @@ function applyStateToInputs() {
   $('optSuggest').checked = !!S.suggest;
   $('zweck').value = S.zweck; $('kontext').value = S.kontext;
   $('hinweise').value = S.hinweise; $('pasted').value = S.pasted;
+  $('noteDecision').value = S.note.decision; $('noteAssumptions').value = S.note.assumptions; $('noteRisks').value = S.note.risks;
 }
 function renderAll() {
   renderChips(); renderChecks(); updatePrompt();

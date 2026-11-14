@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, buildReformatPrompt, promptStatus } from '../src/core/prompt.js';
+import { buildPrompt, buildReformatPrompt, buildCrosscheckPrompt, crosscheckStatus, rowsToMarkdownTable, promptStatus } from '../src/core/prompt.js';
 import { buildMarkdown } from '../src/core/markdown.js';
 import { freshState } from '../src/core/state.js';
 
@@ -102,6 +102,62 @@ describe('Markdown-Export mit Modellvorschlägen', () => {
     const a = buildMarkdown(scored(), { date: '2026-01-15' });
     const b = buildMarkdown(withSug(), { date: '2026-01-15' });
     expect(b.split('## Vorschläge des Modells')[0].trim()).toBe(a.trim());
+  });
+});
+
+describe('Gegenprüfungs-Prompt', () => {
+  it('Snapshot mit eingelesener Tabelle', () => {
+    expect(buildCrosscheckPrompt(scored())).toMatchSnapshot();
+  });
+  it('rowsToMarkdownTable escaped Pipes und wandelt Zeilenumbrüche', () => {
+    const t = rowsToMarkdownTable(scored());
+    expect(t).toContain('| Kriterium | Intune | WSUS | baramundi \\| Suite |');
+    expect(t).toContain('Cloud-native.<br>Mit Update Rings.');
+    expect(t).toContain('Nur Updates \\| kein Cloud');
+  });
+  it('crosscheckStatus verlangt eingelesene Beschreibungen', () => {
+    const s = freshState();
+    expect(crosscheckStatus(s)).toEqual({ ok: false, reason: 'rows' });
+    s.cols = ['A', 'B']; s.rows = [{ name: 'K', weight: 3, cells: ['', ''], scores: [null, null] }];
+    expect(crosscheckStatus(s)).toEqual({ ok: false, reason: 'cells' });
+    expect(crosscheckStatus(scored())).toEqual({ ok: true });
+  });
+});
+
+describe('Markdown-Export: K.-o., Belastbarkeit, Entscheidung, Gegenprüfung', () => {
+  const date = '2026-01-15';
+  const full = () => {
+    const s = scored();
+    s.rows[1].ko = true; s.rows[1].koMin = 2;
+    s.rows[1].scores = [4, 1, 3];
+    s.rows[0].checks = ['ok', 'fix', null];
+    s.rows[1].checks = [null, 'old', 'unproven'];
+    s.note = { decision: 'Intune wird führendes System.', assumptions: 'Alle Clients sind Entra-joined.', risks: 'WAN-Standorte offen.\nZweite Zeile.' };
+    return s;
+  };
+  it('Snapshot', () => {
+    expect(buildMarkdown(full(), { date })).toMatchSnapshot();
+  });
+  it('zeigt K.-o. am Kriterium und den Status je Produkt', () => {
+    const md = buildMarkdown(full(), { date });
+    expect(md).toContain('| Lizenzierung und Kosten (K.-o. ab 2) | 3 |');
+    expect(md).toContain('| **Status** | | im Rennen | ausgeschieden (Lizenzierung und Kosten) | im Rennen |');
+  });
+  it('ohne K.-o.-Kriterium keine Statuszeile', () => {
+    expect(buildMarkdown(scored(), { date })).not.toContain('**Status**');
+  });
+  it('Belastbarkeit lässt sich abschalten', () => {
+    const s = full(); s.sensExport = false;
+    expect(buildMarkdown(s, { date })).not.toContain('Belastbarkeit des Ergebnisses');
+    expect(buildMarkdown(full(), { date })).toContain('## Belastbarkeit des Ergebnisses');
+  });
+  it('Entscheidungsabschnitt nur mit Inhalt', () => {
+    expect(buildMarkdown(scored(), { date })).not.toContain('Entscheidung und Begründung');
+    const s = scored(); s.note = { decision: '', assumptions: 'Nur Annahmen', risks: '  ' };
+    const md = buildMarkdown(s, { date });
+    expect(md).toContain('### Annahmen\n\nNur Annahmen');
+    expect(md).not.toContain('### Entscheidung\n');
+    expect(md).not.toContain('### Risiken');
   });
 });
 

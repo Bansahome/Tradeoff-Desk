@@ -1,6 +1,7 @@
 /** Markdown-Export der Nutzwertanalyse. Reine Funktion. */
 import { de } from '../strings.js';
 import { calc } from './calc.js';
+import { sensitivity, sensitivityLines } from './sensitivity.js';
 import { formatDate } from './util.js';
 
 const cell = (s) => String(s).replace(/\|/g, '\\|').replace(/\n+/g, ' ');
@@ -8,7 +9,7 @@ const oneLine = (s) => String(s).replace(/\n+/g, ' ');
 /** YAML-Listenelement, bei Sonderzeichen in Anführungszeichen. */
 const yamlItem = (s) => (/[,:\[\]{}#&*!|>'"%@`]|^\s|\s$/.test(s) ? '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"' : s);
 
-export function buildMarkdown(state, { date = formatDate(new Date()) } = {}, t = de.md) {
+export function buildMarkdown(state, { date = formatDate(new Date()) } = {}, t = de.md, ts = de.sens) {
   const c = calc(state.rows, state.cols.length);
   const L = [];
   if (state.frontmatter) {
@@ -21,18 +22,37 @@ export function buildMarkdown(state, { date = formatDate(new Date()) } = {}, t =
   L.push('| ' + t.criterion + ' | ' + t.weight + ' | ' + state.cols.map(cell).join(' | ') + ' |');
   L.push('|---|:-:|' + state.cols.map(() => ':-:|').join(''));
   state.rows.forEach((r) => {
-    L.push('| ' + cell(r.name) + ' | ' + r.weight + ' | ' + state.cols.map((_, j) => (r.scores[j] === null || r.scores[j] === undefined ? t.unscored : r.scores[j])).join(' | ') + ' |');
+    L.push('| ' + cell(r.name + (r.ko ? ' (' + t.ko(r.koMin || 1) + ')' : '')) + ' | ' + r.weight + ' | ' + state.cols.map((_, j) => (r.scores[j] === null || r.scores[j] === undefined ? t.unscored : r.scores[j])).join(' | ') + ' |');
   });
   L.push('| **' + t.total + '** | ' + c.sumW + ' | ' + c.totals.map((x) => '**' + x + '** ' + t.of + ' ' + c.max).join(' | ') + ' |');
   L.push('| **' + t.fulfil + '** | | ' + c.percents.map((p) => '**' + p + ' %**').join(' | ') + ' |');
+  if (state.rows.some((r) => r.ko)) {
+    L.push('| **' + t.status + '** | | ' + state.cols.map((_, j) => cell(
+      c.eliminated[j] ? t.out(c.reasons[j]) : c.koOpenBy[j] > 0 ? t.inRaceOpen : t.inRace)).join(' | ') + ' |');
+  }
   L.push('');
   if (c.missing > 0) L.push('_' + t.missing(c.missing) + '_', '');
+  if (state.sensExport) {
+    const sv = sensitivity(state.rows, state.cols);
+    if (sv.ok) {
+      const ln = sensitivityLines(sv, ts);
+      L.push('## ' + ts.title, '', ln.headline, '');
+      ln.details.forEach((x) => L.push('- ' + oneLine(x)));
+      if (ln.details.length) L.push('');
+    }
+  }
+  const n = state.note || {};
+  const notes = [[t.decision, n.decision], [t.assumptions, n.assumptions], [t.risks, n.risks]].filter(([, v]) => v && v.trim());
+  if (notes.length) {
+    L.push('## ' + t.noteTitle, '');
+    notes.forEach(([h, v]) => L.push('### ' + h, '', v.trim(), ''));
+  }
   if (state.details && state.rows.some((r) => r.cells.some(Boolean))) {
     L.push('## ' + t.details, '');
     state.rows.forEach((r) => {
       L.push('### ' + r.name, '');
       state.cols.forEach((pn, j) => {
-        if (r.cells[j]) L.push('- **' + pn + ':** ' + oneLine(r.cells[j]));
+        if (r.cells[j]) L.push('- **' + pn + ':** ' + oneLine(r.cells[j]) + (r.checks && r.checks[j] ? ' _(' + t.checked + ': ' + t.checks[r.checks[j]] + ')_' : ''));
       });
       L.push('');
     });

@@ -138,6 +138,54 @@ assert.doesNotMatch(await page.inputValue('#mdOut'), /Vorschläge des Modells/);
 await page.check('#optSug');
 await page.click('nav.tabs button[data-step="2"]');
 step('Vorschläge übernommen, eigene Abweichung zählt, Export zeigt Vorschlag + Begründung + endgültigen Wert');
+// K.-o., Belastbarkeit, Gegenprüfung, Entscheidungsnotiz
+assert.match(await page.textContent('.sens'), /Belastbarkeit des Ergebnisses[\s\S]*(Eindeutig|Stabil|Knapp|Gleichstand)/);
+await page.locator('.crit').nth(1).locator('[data-act="ko"]').click();
+await page.locator('.crit').nth(1).locator('[data-act="koMin"][data-v="2"]').click();
+assert.equal(await page.locator('.rank-row.out').count(), 1);
+assert.match(await page.textContent('.rank-row.out'), /baramundi[\s\S]*ausgeschieden: Lizenzierung und Kosten/);
+assert.match(await page.textContent('.crit >> nth=1'), /K\.-o\. nicht erfüllt: ausgeschieden/);
+assert.ok(!(await page.textContent('.rank-row.top')).includes('baramundi'), 'Ausgeschiedener darf nicht Platz 1 sein');
+step('K.-o.-Kriterium: Produkt unter der Mindestpunktzahl scheidet aus und steht am Ende des Rankings');
+
+await page.evaluate(() => { document.getElementById('crossBox').open = true; });
+const cross = await page.inputValue('#crossOut');
+assert.match(cross, /ZU PRÜFENDE TABELLE\n\| Kriterium \| Intune \| WSUS \| baramundi \|/);
+assert.match(cross, /\[KORRIGIERT\]/);
+step('Gegenprüfungs-Prompt enthält die eingelesene Tabelle und die Tag-Definitionen');
+
+const CHECKED = '| Kriterium | Intune | WSUS | baramundi |\n|---|---|---|---|\n| Funktionsumfang | [OK] Cloud-native [1] | [KORRIGIERT] Nur Updates, kein WSUS-Cloud | [NICHT BELEGT] Breites Paket |\n| Lizenzierung und Kosten | [OK] in M365 | [OK] kostenlos | [VERALTET] Eigene Lizenz |';
+const rankBefore = await page.textContent('.rank');
+await page.evaluate(() => { document.getElementById('pasteBox').open = true; });
+await page.fill('#pasted', CHECKED);
+await page.click('#parseBtn');
+assert.match(await page.textContent('#parseStatus'), /6 Zellen mit Prüfergebnis erkannt\. Bisherige Bewertung wurde übernommen/);
+assert.equal(await page.locator('.badge').count(), 6);
+assert.equal(await page.locator('.badge.fix').count(), 1);
+assert.equal(await page.textContent('.rank'), rankBefore, 'Bewertung ging bei der Gegenprüfung verloren');
+assert.equal(await page.locator('.rank-row.out').count(), 1, 'K.-o. ging verloren');
+assert.match(await page.textContent('#matrix'), /Gegenprüfung: 3 bestätigt, 1 korrigiert, 1 veraltet, 1 nicht belegt/);
+step('Geprüfte Tabelle eingelesen: Markierungen sichtbar, Bewertung und K.-o. bleiben erhalten');
+
+await page.click('#matrix >> text=Weiter zum Export');
+await page.fill('#noteDecision', 'Intune wird führendes System.');
+await page.fill('#noteRisks', 'WAN-Standorte noch offen.');
+const mdKo = await page.inputValue('#mdOut');
+assert.match(mdKo, /\| Lizenzierung und Kosten \(K\.-o\. ab 2\) \| 2 \|/);
+assert.match(mdKo, /\| \*\*Status\*\* \| \| im Rennen \| im Rennen \| ausgeschieden \(Lizenzierung und Kosten\) \|/);
+assert.match(mdKo, /## Belastbarkeit des Ergebnisses/);
+assert.match(mdKo, /## Entscheidung und Begründung\n\n### Entscheidung\n\nIntune wird führendes System\.\n\n### Risiken und offene Punkte\n\nWAN-Standorte noch offen\./);
+assert.doesNotMatch(mdKo, /### Annahmen/);
+assert.match(mdKo, /_\(Gegenprüfung: korrigiert\)_/);
+await page.uncheck('#optSens');
+assert.doesNotMatch(await page.inputValue('#mdOut'), /Belastbarkeit/);
+await page.check('#optSens');
+step('Export: K.-o.-Status, Belastbarkeit, Entscheidungsnotiz und Gegenprüfung im Markdown');
+
+// Für den folgenden Hauptablauf frisch beginnen
+await page.click('nav.tabs button[data-step="2"]');
+await page.click('[data-act="rmRow"]');
+await page.click('[data-act="rmRow"]');
 await page.evaluate(() => { document.getElementById('pasteBox').open = true; });
 await page.fill('#pasted', TABLE);
 await page.click('#parseBtn');

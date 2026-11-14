@@ -123,17 +123,47 @@
         </div>
       </div>
     </details>
+    <details class="paste" id="crossBox">
+      <summary>{{step2.crossTitle}}</summary>
+      <div class="card">
+        <p class="hint">{{step2.crossHint}}</p>
+        <p class="status warn" id="crossNeed">{{step2.crossNeed}}</p>
+        <textarea class="mono short" id="crossOut" readonly aria-label="{{step2.crossLabel}}"></textarea>
+        <div class="bar-actions">
+          <button type="button" class="btn" id="copyCross">{{step2.crossCopy}}</button>
+          <span class="status" id="crossStatus" role="status"></span>
+        </div>
+      </div>
+    </details>
     <div id="matrix"></div>
   </section>
 
   <!-- Schritt 3 -->
   <section class="step" id="step3">
     <div class="card">
+      <h2>{{step3.noteTitle}}</h2>
+      <p class="hint">{{step3.noteHint}}</p>
+      <div class="field">
+        <label class="l" for="noteDecision">{{step3.noteDecision}}</label>
+        <textarea id="noteDecision" placeholder="{{step3.noteDecisionPh}}"></textarea>
+      </div>
+      <div class="field">
+        <label class="l" for="noteAssumptions">{{step3.noteAssumptions}}</label>
+        <textarea id="noteAssumptions" placeholder="{{step3.noteAssumptionsPh}}"></textarea>
+      </div>
+      <div class="field">
+        <label class="l" for="noteRisks">{{step3.noteRisks}}</label>
+        <textarea id="noteRisks" placeholder="{{step3.noteRisksPh}}"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>{{step3.title}}</h2>
       <div class="toggles">
         <label><input type="checkbox" id="optFront"> {{step3.front}}</label>
         <label><input type="checkbox" id="optDetails"> {{step3.details}}</label>
         <label><input type="checkbox" id="optSug"> {{step3.sug}}</label>
+        <label><input type="checkbox" id="optSens"> {{step3.sens}}</label>
       </div>
       <textarea class="mono" id="mdOut" readonly aria-label="{{step3.outLabel}}"></textarea>
       <div class="bar-actions">

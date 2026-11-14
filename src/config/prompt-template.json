@@ -51,5 +51,32 @@
     "3. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.",
     "4. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte."
   ],
-  "closingSuggest": "Die Zahlen im Bewertungsvorschlag sind nur ein Vorschlag. Gib keine Gesamtpunktzahl und keine Empfehlung ab, die endgültige Gewichtung und Bewertung mache ich selbst."
+  "closingSuggest": "Die Zahlen im Bewertungsvorschlag sind nur ein Vorschlag. Gib keine Gesamtpunktzahl und keine Empfehlung ab, die endgültige Gewichtung und Bewertung mache ich selbst.",
+  "crosscheck": {
+    "intro": "Du bist ein kritischer, unabhängiger Prüfer für Microsoft-Infrastruktur und Consulting. Unten steht das Ergebnis einer Recherche, die ein anderes KI-Modell erstellt hat. Prüfe jede Aussage selbst mit aktueller Websuche gegen Primärquellen. Vertraue den genannten Quellen nicht blind: öffne sie und prüfe, ob sie die Aussage wirklich tragen.",
+    "tableHeading": "ZU PRÜFENDE TABELLE",
+    "rulesHeading": "PRÜFREGELN",
+    "rules": [
+      "Prüfe jede Zelle einzeln, nicht nur Stichproben.",
+      "Bevorzuge Primärquellen: Microsoft Learn, Herstellerdokumentation, offizielle Preis- und Lizenzseiten, Roadmaps.",
+      "Achte besonders auf Lizenz- und SKU-Angaben, Preise, Preview- oder angekündigte Funktionen, Supportzeiträume und Abkündigungen.",
+      "Erfinde nichts. Was du nicht belegen kannst, kennzeichnest du als nicht belegt.",
+      "Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch."
+    ],
+    "tagsHeading": "MARKIERUNG JE ZELLE (genau ein Tag am Zellanfang)",
+    "tags": [
+      "[OK] – Aussage ist durch eine Primärquelle bestätigt.",
+      "[KORRIGIERT] – Aussage war falsch oder ungenau. Schreibe die richtige Fassung und nenne die Quelle.",
+      "[VERALTET] – Aussage war früher richtig, gilt aber nicht mehr. Nenne das Datum der Änderung.",
+      "[NICHT BELEGT] – Du findest keine belastbare Quelle. Nicht raten."
+    ],
+    "outputHeading": "AUSGABEFORMAT (bitte exakt einhalten)",
+    "output": [
+      "FORMAT: Gib das komplette Ergebnis in genau EINEM Markdown-Codeblock aus, der mit ```markdown beginnt und mit ``` endet, damit ich den Rohtext mit einem Klick kopieren kann. Außerhalb des Codeblocks steht nichts. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-pruefung.md“ an.",
+      "1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile, gleiche Struktur wie oben: Spalten „Kriterium“ und {products}, gleiche Zeilen mit denselben Namen. Jede Zelle beginnt mit genau einem Tag, danach der geprüfte oder korrigierte Text in maximal zwei Sätzen, Quellen als [1], [2] usw.",
+      "2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.",
+      "3. Darunter „Wesentliche Abweichungen“ als kurze Stichpunkte: was war falsch, veraltet oder nicht belegt."
+    ],
+    "closing": "Keine Punktbewertung, keine Empfehlung, keine weitere Tabelle."
+  }
 }

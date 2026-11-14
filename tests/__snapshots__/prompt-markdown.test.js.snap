@@ -35,6 +35,43 @@ Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Übernimm die Inhalte 
 Keine weitere Tabelle, kein Bericht, keine Gesamtpunktzahl, keine Empfehlung."
 `;
 
+exports[`Gegenprüfungs-Prompt > Snapshot mit eingelesener Tabelle 1`] = `
+"Du bist ein kritischer, unabhängiger Prüfer für Microsoft-Infrastruktur und Consulting. Unten steht das Ergebnis einer Recherche, die ein anderes KI-Modell erstellt hat. Prüfe jede Aussage selbst mit aktueller Websuche gegen Primärquellen. Vertraue den genannten Quellen nicht blind: öffne sie und prüfe, ob sie die Aussage wirklich tragen.
+
+EINSATZZWECK
+Patch-Management für Windows-Clients
+
+KUNDENKONTEXT
+800 Clients, hybrid Entra-joined,
+kleines IT-Team
+
+ZU PRÜFENDE TABELLE
+| Kriterium | Intune | WSUS | baramundi \\| Suite |
+|---|---|---|---|
+| Funktionsumfang | Cloud-native.<br>Mit Update Rings. | Nur Updates \\| kein Cloud |  |
+| Lizenzierung und Kosten | In M365 enthalten |  | Eigene Lizenz |
+
+PRÜFREGELN
+- Prüfe jede Zelle einzeln, nicht nur Stichproben.
+- Bevorzuge Primärquellen: Microsoft Learn, Herstellerdokumentation, offizielle Preis- und Lizenzseiten, Roadmaps.
+- Achte besonders auf Lizenz- und SKU-Angaben, Preise, Preview- oder angekündigte Funktionen, Supportzeiträume und Abkündigungen.
+- Erfinde nichts. Was du nicht belegen kannst, kennzeichnest du als nicht belegt.
+- Sachlich und knapp, keine Marketingsprache. Antworte auf Deutsch.
+
+MARKIERUNG JE ZELLE (genau ein Tag am Zellanfang)
+- [OK] – Aussage ist durch eine Primärquelle bestätigt.
+- [KORRIGIERT] – Aussage war falsch oder ungenau. Schreibe die richtige Fassung und nenne die Quelle.
+- [VERALTET] – Aussage war früher richtig, gilt aber nicht mehr. Nenne das Datum der Änderung.
+- [NICHT BELEGT] – Du findest keine belastbare Quelle. Nicht raten.
+
+AUSGABEFORMAT (bitte exakt einhalten)
+FORMAT: Gib das komplette Ergebnis in genau EINEM Markdown-Codeblock aus, der mit \`\`\`markdown beginnt und mit \`\`\` endet, damit ich den Rohtext mit einem Klick kopieren kann. Außerhalb des Codeblocks steht nichts. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-pruefung.md“ an.
+1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile, gleiche Struktur wie oben: Spalten „Kriterium“ und Intune | WSUS | baramundi | Suite, gleiche Zeilen mit denselben Namen. Jede Zelle beginnt mit genau einem Tag, danach der geprüfte oder korrigierte Text in maximal zwei Sätzen, Quellen als [1], [2] usw.
+2. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.
+3. Darunter „Wesentliche Abweichungen“ als kurze Stichpunkte: was war falsch, veraltet oder nicht belegt.
+Keine Punktbewertung, keine Empfehlung, keine weitere Tabelle."
+`;
+
 exports[`Markdown-Export > Snapshot mit Frontmatter und Beschreibungen 1`] = `
 "---
 typ: variantenbewertung
@@ -59,6 +96,12 @@ Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
 | **Erfüllungsgrad** | | **93 %** | **25 %** | **45 %** |
 
 _Hinweis: 1 Feld ist nicht bewertet und zählt als 0._
+
+## Belastbarkeit des Ergebnisses
+
+Eindeutig: Intune ist in keinem Kriterium schlechter bewertet als ein anderes Produkt im Rennen. Das Ergebnis hängt nicht von den Gewichten ab.
+
+- Unbewertete Felder (1) zählen als 0. Die Aussage ist erst mit vollständiger Bewertung verlässlich.
 
 ## Beschreibung je Kriterium
 
@@ -94,6 +137,10 @@ Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
 | Lizenzierung und Kosten | 3 | 2 | 2 | 2 |
 | **Nutzwert** | 8 | **16** von 40 | **16** von 40 | **16** von 40 |
 | **Erfüllungsgrad** | | **40 %** | **40 %** | **40 %** |
+
+## Belastbarkeit des Ergebnisses
+
+Gleichstand: Intune und WSUS und baramundi | Suite haben denselben Nutzwert. Das Ranking entscheidet hier nicht.
 "
 `;
 
@@ -114,6 +161,12 @@ Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
 | **Erfüllungsgrad** | | **93 %** | **25 %** | **45 %** |
 
 _Hinweis: 1 Feld ist nicht bewertet und zählt als 0._
+
+## Belastbarkeit des Ergebnisses
+
+Eindeutig: Intune ist in keinem Kriterium schlechter bewertet als ein anderes Produkt im Rennen. Das Ergebnis hängt nicht von den Gewichten ab.
+
+- Unbewertete Felder (1) zählen als 0. Die Aussage ist erst mit vollständiger Bewertung verlässlich.
 "
 `;
 
@@ -142,6 +195,12 @@ Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
 
 _Hinweis: 1 Feld ist nicht bewertet und zählt als 0._
 
+## Belastbarkeit des Ergebnisses
+
+Eindeutig: Intune ist in keinem Kriterium schlechter bewertet als ein anderes Produkt im Rennen. Das Ergebnis hängt nicht von den Gewichten ab.
+
+- Unbewertete Felder (1) zählen als 0. Die Aussage ist erst mit vollständiger Bewertung verlässlich.
+
 ## Beschreibung je Kriterium
 
 ### Funktionsumfang
@@ -168,6 +227,63 @@ _Nur Vorschläge. Maßgeblich sind die Werte der Bewertungsmatrix._
 
 - **Intune:** Vorschlag 3 (endgültig 4) – enthalten | aber begrenzt
 - **baramundi | Suite:** Vorschlag 1 (endgültig 1) – eigene Lizenz
+"
+`;
+
+exports[`Markdown-Export: K.-o., Belastbarkeit, Entscheidung, Gegenprüfung > Snapshot 1`] = `
+"---
+typ: variantenbewertung
+datum: 2026-01-15
+varianten: [Intune, WSUS, "baramundi | Suite"]
+tags: [variantenbewertung]
+---
+
+# Variantenbewertung: Patch-Management für Windows-Clients
+
+**Kontext:** 800 Clients, hybrid Entra-joined, kleines IT-Team
+
+## Bewertungsmatrix
+
+Gewicht 1 bis 5, Punkte 0 bis 5. Nutzwert = Summe aus Gewicht × Punkte.
+
+| Kriterium | Gewicht | Intune | WSUS | baramundi \\| Suite |
+|---|:-:|:-:|:-:|:-:|
+| Funktionsumfang | 5 | 5 | 2 | 3 |
+| Lizenzierung und Kosten (K.-o. ab 2) | 3 | 4 | 1 | 3 |
+| **Nutzwert** | 8 | **37** von 40 | **13** von 40 | **24** von 40 |
+| **Erfüllungsgrad** | | **93 %** | **33 %** | **60 %** |
+| **Status** | | im Rennen | ausgeschieden (Lizenzierung und Kosten) | im Rennen |
+
+## Belastbarkeit des Ergebnisses
+
+Eindeutig: Intune ist in keinem Kriterium schlechter bewertet als ein anderes Produkt im Rennen. Das Ergebnis hängt nicht von den Gewichten ab.
+
+## Entscheidung und Begründung
+
+### Entscheidung
+
+Intune wird führendes System.
+
+### Annahmen
+
+Alle Clients sind Entra-joined.
+
+### Risiken und offene Punkte
+
+WAN-Standorte offen.
+Zweite Zeile.
+
+## Beschreibung je Kriterium
+
+### Funktionsumfang
+
+- **Intune:** Cloud-native. Mit Update Rings. _(Gegenprüfung: bestätigt)_
+- **WSUS:** Nur Updates | kein Cloud _(Gegenprüfung: korrigiert)_
+
+### Lizenzierung und Kosten
+
+- **Intune:** In M365 enthalten
+- **baramundi | Suite:** Eigene Lizenz _(Gegenprüfung: nicht belegt)_
 "
 `;
 

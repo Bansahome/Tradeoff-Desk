@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseTable, parseSuggestions, parseSuggestCell, splitRow, cleanCell } from '../src/core/parser.js';
+import { parseTable, parseSuggestions, parseSuggestCell, splitCheck, splitRow, cleanCell } from '../src/core/parser.js';
 
 const basic = `| Kriterium | A | B |
 |---|---|---|
@@ -210,5 +210,22 @@ describe('Helfer', () => {
   });
   it('cleanCell räumt Leerraum um Umbrüche auf', () => {
     expect(cleanCell('  a <br> b  ')).toBe('a\nb');
+  });
+});
+
+describe('Prüf-Tags der Gegenprüfung', () => {
+  it('splitCheck erkennt die vier Tags in gängigen Schreibweisen', () => {
+    expect(splitCheck('[OK] bestätigt')).toEqual({ check: 'ok', text: 'bestätigt' });
+    expect(splitCheck('[korrigiert]: richtig ist X')).toEqual({ check: 'fix', text: 'richtig ist X' });
+    expect(splitCheck(' [ VERALTET ] – seit 2025 anders')).toEqual({ check: 'old', text: 'seit 2025 anders' });
+    expect(splitCheck('[NICHT_BELEGT]')).toEqual({ check: 'unproven', text: '' });
+    expect(splitCheck('[1] Quelle am Anfang')).toEqual({ check: null, text: '[1] Quelle am Anfang' });
+    expect(splitCheck('ohne')).toEqual({ check: null, text: 'ohne' });
+  });
+  it('die geprüfte Tabelle lässt sich normal einlesen, Fettdruck um den Tag stört nicht', () => {
+    const t = '```markdown\n| Kriterium | Alpha | Beta |\n|---|---|---|\n| K | **[OK]** passt [1] | [VERALTET] alt |\n```';
+    const r = parseTable(t, { products: ['Alpha', 'Beta'] });
+    expect(r.ok).toBe(true);
+    expect(r.rows[0].cells).toEqual(['[OK] passt [1]', '[VERALTET] alt']);
   });
 });

@@ -1,0 +1,19 @@
+{
+  "name": "tradeoff-desk",
+  "version": "0.1.0",
+  "description": "Prompt-Generator und Nutzwertanalyse für Architekturentscheidungen. Recherche in ChatGPT, Gewichtung und Export als Markdown im Browser.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "node tests/smoke/smoke.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "vitest": "^5.1.0"
+  }
+}

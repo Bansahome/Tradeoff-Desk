@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{app.name}}</title>
+<link rel="icon" href="{{ICON_DATA_URI}}">
+{{HEAD_EXTRA}}
+<style>{{STYLE}}</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>{{app.name}}</h1>
+      <p class="sub">{{app.intro}}</p>
+    </div>
+    <div class="session" role="group" aria-label="{{session.group}}">
+      <button type="button" class="btn" id="sessSave">{{session.save}}</button>
+      <button type="button" class="btn" id="sessLoad">{{session.load}}</button>
+      <input type="file" id="sessFile" accept=".json,application/json" hidden>
+    </div>
+  </header>
+  <p class="status" id="sessStatus" role="status"></p>
+  <p class="note" id="storageNote" hidden>{{app.storageOff}}</p>
+
+  <nav class="tabs" aria-label="{{tabs.label}}">
+    <button type="button" data-step="1" aria-current="step"><span class="n">1</span>{{tabs.s1}}</button>
+    <button type="button" data-step="2"><span class="n">2</span>{{tabs.s2}}</button>
+    <button type="button" data-step="3"><span class="n">3</span>{{tabs.s3}}</button>
+  </nav>
+
+  <main>
+  <!-- Schritt 1 -->
+  <section class="step on" id="step1">
+    <div class="card">
+      <h2>{{step1.whatTitle}}</h2>
+      <div class="field">
+        <label class="l" for="zweck">{{step1.zweck}}</label>
+        <input type="text" id="zweck" autocomplete="off" placeholder="{{step1.zweckPh}}">
+      </div>
+      <div class="field">
+        <label class="l" for="prodIn">{{step1.products}}</label>
+        <div class="chips" id="chips"></div>
+        <div class="row">
+          <input type="text" id="prodIn" autocomplete="off" placeholder="{{step1.productsPh}}">
+          <button type="button" class="btn" id="prodAdd">{{step1.add}}</button>
+        </div>
+        <p class="hint">{{step1.productsHint}}</p>
+      </div>
+      <div class="field">
+        <label class="l" for="kontext">{{step1.kontext}}</label>
+        <textarea id="kontext" placeholder="{{step1.kontextPh}}"></textarea>
+      </div>
+      <div class="field">
+        <label class="l" for="hinweise">{{step1.hinweise}}</label>
+        <textarea id="hinweise" placeholder="{{step1.hinweisePh}}"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>{{step1.critTitle}}</h2>
+      <div class="checks" id="checks"></div>
+      <p class="hint" id="critHint" hidden>{{step1.critHintEdit}}</p>
+      <div class="row">
+        <input type="text" id="critIn" autocomplete="off" aria-label="{{step1.critOwnLabel}}" placeholder="{{step1.critOwnPh}}">
+        <button type="button" class="btn" id="critAdd">{{step1.add}}</button>
+      </div>
+      <div class="bar-actions">
+        <button type="button" class="btn" id="critEdit" aria-pressed="false">{{step1.critEdit}}</button>
+        <span id="critTools" class="tools" hidden>
+          <button type="button" class="btn ghost" id="critReset">{{step1.critReset}}</button>
+          <button type="button" class="btn ghost" id="critSave">{{step1.critSave}}</button>
+          <button type="button" class="btn ghost" id="critLoad">{{step1.critLoad}}</button>
+        </span>
+        <input type="file" id="critFile" accept=".json,application/json" hidden>
+        <span class="status" id="critStatus" role="status"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>{{step1.promptTitle}}</h2>
+      <textarea class="mono" id="promptOut" readonly aria-label="{{step1.promptLabel}}"></textarea>
+      <div class="bar-actions">
+        <button type="button" class="btn primary" id="copyPrompt">{{step1.copyPrompt}}</button>
+        <button type="button" class="btn" id="toStep2">{{step1.toStep2}}</button>
+        <button type="button" class="btn ghost" id="resetAll">{{step1.reset}}</button>
+        <span class="status" id="promptStatus" role="status"></span>
+      </div>
+      <p class="hint">{{step1.resetHint}}</p>
+    </div>
+  </section>
+
+  <!-- Schritt 2 -->
+  <section class="step" id="step2">
+    <details class="paste" id="pasteBox" open>
+      <summary>{{step2.pasteTitle}}</summary>
+      <div class="card">
+        <label class="l" for="pasted">{{step2.pasteLabel}}</label>
+        <textarea class="mono short" id="pasted" placeholder="{{step2.pastePh}}"></textarea>
+        <div class="bar-actions">
+          <button type="button" class="btn primary" id="parseBtn">{{step2.parse}}</button>
+          <button type="button" class="btn" id="blankBtn">{{step2.blank}}</button>
+          <span class="status" id="parseStatus" role="status"></span>
+        </div>
+        <p class="hint">{{step2.pasteHint}}</p>
+      </div>
+    </details>
+    <div id="matrix"></div>
+  </section>
+
+  <!-- Schritt 3 -->
+  <section class="step" id="step3">
+    <div class="card">
+      <h2>{{step3.title}}</h2>
+      <div class="toggles">
+        <label><input type="checkbox" id="optFront"> {{step3.front}}</label>
+        <label><input type="checkbox" id="optDetails"> {{step3.details}}</label>
+      </div>
+      <textarea class="mono" id="mdOut" readonly aria-label="{{step3.outLabel}}"></textarea>
+      <div class="bar-actions">
+        <button type="button" class="btn primary" id="copyMd">{{step3.copy}}</button>
+        <button type="button" class="btn" id="dlMd">{{step3.download}}</button>
+        <span class="status" id="mdStatus" role="status"></span>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <footer class="foot">{{app.privacy}}</footer>
+</div>
+<noscript><p style="padding:16px">{{app.noscript}}</p></noscript>
+<script>{{SCRIPT}}</script>
+{{BODY_END}}
+</body>
+</html>

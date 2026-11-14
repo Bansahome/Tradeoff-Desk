@@ -25,16 +25,20 @@ export function buildPrompt(state, tpl = defaultTemplate) {
   L.push('', h.research);
   tpl.research.forEach((r) => L.push('- ' + r));
   L.push('', h.output);
-  tpl.output.forEach((o) => L.push(o.split('{products}').join(p.join(' | '))));
-  L.push(tpl.closing);
+  (state.suggest ? tpl.outputSuggest : tpl.output).forEach((o) => L.push(o.split('{products}').join(p.join(' | '))));
+  L.push(state.suggest ? tpl.closingSuggest : tpl.closing);
   return L.join('\n');
 }
 
 /** Folge-Prompt, wenn der Chatbot statt der Tabelle einen Bericht geliefert hat. */
 export function buildReformatPrompt(state, tpl = defaultTemplate) {
   const r = tpl.reformat;
-  const L = [r.intro, '', r.table.split('{products}').join(state.products.join(' | '))];
+  const prods = state.products.join(' | ');
+  const L = [r.intro, '', r.table.split('{products}').join(prods)];
   activeCriteria(state.criteria).forEach((c, i) => L.push('   ' + (i + 1) + '. ' + c.name.trim()));
-  L.push('', r.cells, ...r.rest, '', r.closing);
+  L.push('', r.cells);
+  if (state.suggest) r.restSuggest.forEach((x) => L.push(x.split('{products}').join(prods)));
+  else r.rest.forEach((x) => L.push(x));
+  L.push('', state.suggest ? r.closingSuggest : r.closing);
   return L.join('\n');
 }

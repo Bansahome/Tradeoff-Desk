@@ -40,6 +40,7 @@ page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 
 const step = (n) => console.log('ok  ' + n);
+page.on('dialog', (d) => d.accept());
 
 await page.goto(url);
 assert.equal(await page.title(), 'Tradeoff Desk');
@@ -62,6 +63,13 @@ assert.match(await page.inputValue('#promptOut'), /KUNDENKONTEXT\n800 Clients, h
 await page.click('#copyPrompt');
 await page.waitForFunction(() => document.getElementById('promptStatus').textContent.length > 0);
 step('Prompt live, Chips, eigenes Kriterium, Kopieren-Rückmeldung: ' + (await page.textContent('#promptStatus')));
+
+// Option Bewertungsvorschlag
+await page.check('#optSuggest');
+assert.match(await page.inputValue('#promptOut'), /„Bewertungsvorschlag“ als zweite Markdown-Tabelle/);
+await page.uncheck('#optSuggest');
+assert.doesNotMatch(await page.inputValue('#promptOut'), /Bewertungsvorschlag/);
+step('Option „Bewertungsvorschlag“ ändert den Prompt');
 
 // Kriterien anpassen
 await page.click('#critEdit');
@@ -101,6 +109,35 @@ await page.fill('#pasted', '| Produkt | Funktionsumfang | Lizenzierung und Koste
 await page.click('#parseBtn');
 assert.match(await page.textContent('#parseStatus'), /2 Kriterien × 3 Produkte.*gedreht/);
 step('Gedrehte Tabelle erkannt und umgestellt');
+// Bewertungsvorschläge des Modells: sichtbar, markiert, nur auf Wunsch übernommen
+const SUG = '| Kriterium | Gewicht | Intune | WSUS | baramundi |\n|---|---|---|---|---|\n| Funktionsumfang | 5 – Kernanforderung | 5 – Update Rings [1] | 2 – nur Updates | 3 – breites Paket |\n| Lizenzierung und Kosten | 2 – nachrangig | 4 – in M365 enthalten | 5 – kostenlos | 1 – eigene Lizenz |';
+await page.evaluate(() => { document.getElementById('pasteBox').open = true; });
+await page.fill('#pasted', TABLE.replace('\n```\n\nQuellen', '\n\n' + SUG + '\n```\n\nQuellen'));
+await page.click('#parseBtn');
+assert.match(await page.textContent('#parseStatus'), /2 Kriterien × 3 Produkte.*8 Bewertungsvorschläge erkannt/);
+assert.equal(await page.locator('.sugtxt').count(), 8);
+assert.match(await page.textContent('.crit >> nth=0'), /Vorschlag Modell: 5 – Kernanforderung/);
+assert.equal(await page.locator('.seg button.sug').count(), 8);
+assert.match(await page.textContent('#matrix'), /6 Felder sind noch nicht bewertet/);
+const before = await page.textContent('.rank');
+assert.match(before, /0 \/ 30/);
+step('Vorschläge sichtbar und markiert, zählen aber noch nicht: ' + before.replace(/\s+/g, ' ').trim());
+await page.locator('.crit').first().locator('[data-act="takeScore"][data-p="1"]').click();
+assert.match(await page.textContent('.rank'), /WSUS6 \/ 30/);
+await page.click('[data-act="takeAll"]');
+assert.match(await page.textContent('#matrix'), /Alle Felder bewertet/);
+assert.equal(await page.locator('.crit').first().locator('[data-act="weight"][aria-pressed="true"]').textContent(), '5');
+await page.locator('.crit').first().locator('[data-act="score"][data-p="0"][data-v="3"]').click(); // eigene Bewertung weicht ab
+await page.click('#matrix >> text=Weiter zum Export');
+const mdSug = await page.inputValue('#mdOut');
+assert.match(mdSug, /## Vorschläge des Modells/);
+assert.match(mdSug, /\*\*Intune:\*\* Vorschlag 5 \(endgültig 3\) – Update Rings \[1\]/);
+assert.match(mdSug, /\| Funktionsumfang \| 5 \| 3 \| 2 \| 3 \|/);
+await page.uncheck('#optSug');
+assert.doesNotMatch(await page.inputValue('#mdOut'), /Vorschläge des Modells/);
+await page.check('#optSug');
+await page.click('nav.tabs button[data-step="2"]');
+step('Vorschläge übernommen, eigene Abweichung zählt, Export zeigt Vorschlag + Begründung + endgültigen Wert');
 await page.evaluate(() => { document.getElementById('pasteBox').open = true; });
 await page.fill('#pasted', TABLE);
 await page.click('#parseBtn');

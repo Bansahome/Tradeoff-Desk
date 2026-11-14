@@ -67,6 +67,7 @@ function parseBlock(block) {
   return { ok: true, cols, rows };
 }
 
+const SUG_HEAD = /^gewicht\b/i;
 const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9äöüß]+/g, ' ').trim();
 function sameName(a, b) {
   a = norm(a); b = norm(b);
@@ -106,8 +107,11 @@ export function parseTable(text, { products = [] } = {}) {
   if (!blocks.length && src.includes('\t')) blocks = findBlocks(tabsToPipes(src)).filter(qualifies);
   if (!blocks.length) return { ok: false, error: 'no-table' };
   const results = blocks.map(parseBlock);
-  const valid = results.filter((r) => r.ok);
-  if (!valid.length) return results[0];
+  const allValid = results.filter((r) => r.ok);
+  if (!allValid.length) return results[0];
+  // Die Bewertungsvorschlags-Tabelle (zweite Spalte „Gewicht“) ist nie die Hauptentabelle.
+  const main = allValid.filter((t) => !SUG_HEAD.test(t.cols[0]));
+  const valid = main.length ? main : allValid;
   if (!products.length) return valid[0];
   let best = null, bestScore = 0, bestTransposed = false;
   for (const t of valid) {
@@ -117,4 +121,44 @@ export function parseTable(text, { products = [] } = {}) {
   }
   if (!best) return valid[0];
   return bestTransposed ? transpose(best) : best;
+}
+
+/** Zelle des Bewertungsvorschlags: „4 – Begründung“ -> { value, why } oder null. */
+export function parseSuggestCell(s) {
+  const m = String(s).match(/^\s*([0-5])(?![\d.,])(?:\s*\/\s*5)?\s*(?:[-–—:]\s*)?([\s\S]*)$/);
+  return m ? { value: Number(m[1]), why: m[2].trim() } : null;
+}
+
+function findName(rows, name) {
+  const n = norm(name);
+  return rows.find((r) => norm(r.name) === n) || rows.find((r) => sameName(r.name, name));
+}
+
+/**
+ * Liest die optionale Vorschlagstabelle („Kriterium | Gewicht | Produkt …“) und ordnet sie
+ * den Zeilen und Spalten der Haupttabelle zu. -> Array je Zeile oder null.
+ * Zeile: { weight: {value,why}|null, scores: [{value,why}|null] } oder null.
+ */
+export function parseSuggestions(text, table) {
+  const src = String(text || '');
+  let blocks = findBlocks(src).filter(qualifies);
+  if (!blocks.length && src.includes('\t')) blocks = findBlocks(tabsToPipes(src)).filter(qualifies);
+  const sug = blocks.map(parseBlock).find((t) => t.ok && SUG_HEAD.test(t.cols[0]));
+  if (!sug) return null;
+  const colIdx = table.cols.map((c, j) => {
+    let k = sug.cols.findIndex((x, i) => i > 0 && norm(x) === norm(c));
+    if (k < 0) k = sug.cols.findIndex((x, i) => i > 0 && sameName(x, c));
+    if (k < 0 && sug.cols.length - 1 === table.cols.length) k = j + 1;
+    return k;
+  });
+  const out = table.rows.map((r) => {
+    const row = findName(sug.rows, r.name);
+    if (!row) return null;
+    const w = parseSuggestCell(row.cells[0]);
+    return {
+      weight: w && w.value >= 1 ? w : null,
+      scores: colIdx.map((k) => (k > 0 ? parseSuggestCell(row.cells[k]) : null)),
+    };
+  });
+  return out.some(Boolean) ? out : null;
 }

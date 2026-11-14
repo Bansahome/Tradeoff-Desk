@@ -81,6 +81,8 @@
 
     <div class="card">
       <h2>{{step1.promptTitle}}</h2>
+      <label class="toggles one"><input type="checkbox" id="optSuggest"> {{step1.suggest}}</label>
+      <p class="hint">{{step1.suggestHint}}</p>
       <textarea class="mono" id="promptOut" readonly aria-label="{{step1.promptLabel}}"></textarea>
       <div class="bar-actions">
         <button type="button" class="btn primary" id="copyPrompt">{{step1.copyPrompt}}</button>
@@ -131,6 +133,7 @@
       <div class="toggles">
         <label><input type="checkbox" id="optFront"> {{step3.front}}</label>
         <label><input type="checkbox" id="optDetails"> {{step3.details}}</label>
+        <label><input type="checkbox" id="optSug"> {{step3.sug}}</label>
       </div>
       <textarea class="mono" id="mdOut" readonly aria-label="{{step3.outLabel}}"></textarea>
       <div class="bar-actions">

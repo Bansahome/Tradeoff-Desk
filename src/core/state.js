@@ -25,6 +25,8 @@ export function freshState() {
     rows: [],
     frontmatter: true,
     details: true,
+    suggest: false,
+    sugExport: true,
   };
 }
 
@@ -37,6 +39,7 @@ export function emptyState(prev) {
     s.criteria = cloneCriteria(prev.criteria);
     s.frontmatter = prev.frontmatter;
     s.details = prev.details;
+    s.sugExport = prev.sugExport;
   }
   return s;
 }
@@ -52,6 +55,16 @@ const str = (v) => (typeof v === 'string' ? v : '');
 
 function normalizeCriteria(list) {
   return list.filter(isObj).map((c) => ({ id: str(c.id) || newId(), name: str(c.name), hint: str(c.hint), on: !!c.on }));
+}
+
+function normSugItem(v, min) {
+  return isObj(v) && Number.isInteger(v.value) && v.value >= min && v.value <= 5 ? { value: v.value, why: str(v.why) } : null;
+}
+function normSug(raw, n) {
+  if (!isObj(raw)) return null;
+  const weight = normSugItem(raw.weight, 1);
+  const scores = Array.from({ length: n }, (_, j) => normSugItem(Array.isArray(raw.scores) ? raw.scores[j] : null, 0));
+  return weight || scores.some(Boolean) ? { weight, scores } : null;
 }
 
 /** Macht aus beliebigem (z. B. geladenem) JSON einen gültigen Zustand oder null. */
@@ -75,6 +88,8 @@ export function normalizeState(raw) {
           const s = Array.isArray(r.scores) ? r.scores[j] : null;
           return Number.isInteger(s) && s >= 0 && s <= 5 ? s : null;
         }),
+        sug: normSug(r.sug, cols.length),
+        weightSet: !!r.weightSet,
       };
     })
     .filter((r) => r.name);
@@ -89,16 +104,20 @@ export function normalizeState(raw) {
     rows,
     frontmatter: raw.frontmatter === undefined ? true : !!raw.frontmatter,
     details: raw.details === undefined ? true : !!raw.details,
+    suggest: !!raw.suggest,
+    sugExport: raw.sugExport === undefined ? true : !!raw.sugExport,
   };
 }
 
 /** Tabelle aus dem Parser -> Bewertungszeilen (Gewicht 3, noch keine Punkte). */
-export function rowsFromTable(table) {
-  return table.rows.map((r) => ({
+export function rowsFromTable(table, sugs = null) {
+  return table.rows.map((r, i) => ({
     name: r.name,
     weight: DEFAULT_WEIGHT,
     cells: r.cells.slice(),
     scores: table.cols.map(() => null),
+    sug: normSug(sugs && sugs[i], table.cols.length),
+    weightSet: false,
   }));
 }
 
@@ -110,6 +129,8 @@ export function blankRows(state) {
     weight: DEFAULT_WEIGHT,
     cells: cols.map(() => ''),
     scores: cols.map(() => null),
+    sug: null,
+    weightSet: false,
   }));
   return { cols, rows };
 }
@@ -150,4 +171,21 @@ export function parseCriteriaSet(text) {
   const criteria = normalizeCriteria(list);
   if (!criteria.length) return { ok: false, error: 'format' };
   return { ok: true, criteria };
+}
+
+export function countSuggestions(state) {
+  return state.rows.reduce((n, r) => n + (r.sug ? r.sug.scores.filter(Boolean).length + (r.sug.weight ? 1 : 0) : 0), 0);
+}
+
+/** Übernimmt Vorschläge für noch unbewertete Punkte und für Gewichte, die du nicht selbst gesetzt hast. */
+export function applyOpenSuggestions(state) {
+  let n = 0;
+  state.rows.forEach((r) => {
+    if (!r.sug) return;
+    if (r.sug.weight && !r.weightSet) { r.weight = r.sug.weight.value; r.weightSet = true; n++; }
+    r.sug.scores.forEach((sg, j) => {
+      if (sg && (r.scores[j] === null || r.scores[j] === undefined)) { r.scores[j] = sg.value; n++; }
+    });
+  });
+  return n;
 }

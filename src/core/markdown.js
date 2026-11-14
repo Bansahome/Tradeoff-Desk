@@ -37,5 +37,17 @@ export function buildMarkdown(state, { date = formatDate(new Date()) } = {}, t =
       L.push('');
     });
   }
+  if (state.sugExport && state.rows.some((r) => r.sug)) {
+    L.push('## ' + t.sug, '', '_' + t.sugNote + '_', '');
+    state.rows.forEach((r) => {
+      if (!r.sug) return;
+      L.push('### ' + r.name, '');
+      const fin = (v) => (v === null || v === undefined ? t.unscored : v);
+      const line = (label, sg, final) => sg && L.push('- **' + label + ':** ' + t.proposal + ' ' + sg.value + ' (' + t.final + ' ' + fin(final) + ')' + (sg.why ? ' – ' + oneLine(sg.why) : ''));
+      line(t.weight, r.sug.weight, r.weight);
+      state.cols.forEach((pn, j) => line(pn, r.sug.scores[j], r.scores[j]));
+      L.push('');
+    });
+  }
   return L.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
 }

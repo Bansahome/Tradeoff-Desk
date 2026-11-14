@@ -1,13 +1,14 @@
 /** UI: verdrahtet DOM, Zustand und die reinen Module aus src/core. */
 import { de as T } from '../strings.js';
 import { $, esc, download, readFile, flash, copyFrom } from './dom.js';
-import { parseTable } from '../core/parser.js';
+import { parseTable, parseSuggestions } from '../core/parser.js';
 import { calc, rank } from '../core/calc.js';
 import { buildPrompt, buildReformatPrompt, promptStatus } from '../core/prompt.js';
 import { buildMarkdown } from '../core/markdown.js';
 import { activeCriteria, formatDate, slugify } from '../core/util.js';
 import {
   freshState, emptyState, normalizeState, rowsFromTable, blankRows, hasScores, newId, cloneCriteria,
+  countSuggestions, applyOpenSuggestions,
   serializeSession, parseSession, serializeCriteriaSet, parseCriteriaSet,
 } from '../core/state.js';
 
@@ -179,6 +180,7 @@ function updatePrompt() {
   $('fixOut').value = buildReformatPrompt(S); $('copyFix').disabled = false;
   st.className = 'status'; st.textContent = '';
 }
+$('optSuggest').addEventListener('change', (e) => { S.suggest = e.target.checked; updatePrompt(); save(); });
 $('copyPrompt').addEventListener('click', () => copyFrom($('promptOut'), $('promptStatus'), T.copy));
 $('copyFix').addEventListener('click', () => copyFrom($('fixOut'), $('fixStatus'), T.copy));
 $('copyMd').addEventListener('click', () => copyFrom($('mdOut'), $('mdStatus'), T.copy));
@@ -196,8 +198,9 @@ $('parseBtn').addEventListener('click', () => {
   const res = parseTable(S.pasted, { products: S.products });
   if (!res.ok) { flash(st, T.step2.parseErrors[res.error], 'warn'); $('fixBox').open = true; return; }
   if (hasScores(S) && !window.confirm(T.step2.overwriteConfirm)) return;
-  S.cols = res.cols; S.rows = rowsFromTable(res); save();
-  flash(st, T.step2.parsed(res.rows.length, res.cols.length) + (res.transposed ? T.step2.transposed : ''), 'ok');
+  const sugs = parseSuggestions(S.pasted, res);
+  S.cols = res.cols; S.rows = rowsFromTable(res, sugs); save();
+  flash(st, T.step2.parsed(res.rows.length, res.cols.length) + (res.transposed ? T.step2.transposed : '') + (sugs ? T.step2.parsedSug(countSuggestions(S)) : ''), 'ok');
   $('pasteBox').open = false;
   renderMatrix();
 });
@@ -222,12 +225,18 @@ $('pastedFile').addEventListener('change', async (e) => {
 $('pasted').addEventListener('input', (e) => { S.pasted = e.target.value; save(); });
 
 /* ---------- Schritt 2: Bewerten ---------- */
-function seg(kind, r, p, from, to, cur, label) {
+function seg(kind, r, p, from, to, cur, label, sug) {
   let h = '<div class="seg" role="group" aria-label="' + esc(label) + '">';
   for (let v = from; v <= to; v++) {
-    h += '<button type="button" data-act="' + kind + '" data-r="' + r + '" data-p="' + p + '" data-v="' + v + '" aria-pressed="' + (cur === v) + '">' + v + '</button>';
+    const isSug = sug === v;
+    h += '<button type="button"' + (isSug ? ' class="sug" aria-label="' + v + ' (' + esc(T.step2.sugMark) + ')"' : '') + ' data-act="' + kind + '" data-r="' + r + '" data-p="' + p + '" data-v="' + v + '" aria-pressed="' + (cur === v) + '">' + v + '</button>';
   }
   return h + '</div>';
+}
+function sugLine(sg, act, r, p) {
+  if (!sg) return '';
+  return '<p class="sugtxt"><span><b>' + esc(T.step2.sugLabel) + ' ' + sg.value + '</b>' + (sg.why ? ' – ' + esc(sg.why) : '') + '</span>' +
+    '<button type="button" class="linkbtn" data-act="' + act + '" data-r="' + r + '" data-p="' + p + '" data-v="' + sg.value + '">' + esc(T.step2.take) + '</button></p>';
 }
 function renderMatrix() {
   const box = $('matrix');
@@ -251,16 +260,19 @@ function renderMatrix() {
   h += c.missing > 0
     ? '<p class="status warn" style="margin:12px 0 0">' + esc(T.step2.missing(c.missing)) + '</p>'
     : '<p class="status ok" style="margin:12px 0 0">' + esc(T.step2.allDone) + '</p>';
-  h += '<div class="bar-actions"><button type="button" class="btn primary" data-act="toExport" data-r="" data-p="">' + esc(T.step2.toExport) + '</button></div></div>';
-  h += '<p class="hint" style="margin:0 0 10px">' + esc(T.step2.legend) + '</p>';
+  const nSug = countSuggestions(S);
+  h += '<div class="bar-actions"><button type="button" class="btn primary" data-act="toExport" data-r="" data-p="">' + esc(T.step2.toExport) + '</button>' +
+    (nSug ? '<button type="button" class="btn" data-act="takeAll" data-r="" data-p="">' + esc(T.step2.takeAll) + '</button>' : '') + '</div></div>';
+  h += '<p class="hint" style="margin:0 0 10px">' + esc(T.step2.legend) + (nSug ? ' ' + esc(T.step2.sugLegend) : '') + '</p>';
   S.rows.forEach((r, i) => {
     h += '<article class="crit"><div class="crit-head"><h3>' + esc(r.name) + '</h3><div class="w"><span>' + esc(T.step2.weight) + '</span>' +
-      seg('weight', i, 0, 1, 5, r.weight, T.step2.weightFor(r.name)) +
-      '<button type="button" class="linkbtn" data-act="rmRow" data-r="' + i + '" data-p="0" aria-label="' + esc(T.step2.removeRowAria(r.name)) + '">' + esc(T.step2.removeRow) + '</button></div></div><div class="prods">';
+      seg('weight', i, 0, 1, 5, r.weight, T.step2.weightFor(r.name), r.sug && r.sug.weight ? r.sug.weight.value : null) +
+      '<button type="button" class="linkbtn" data-act="rmRow" data-r="' + i + '" data-p="0" aria-label="' + esc(T.step2.removeRowAria(r.name)) + '">' + esc(T.step2.removeRow) + '</button></div></div>' + sugLine(r.sug && r.sug.weight, 'takeWeight', i, 0) + '<div class="prods">';
     S.cols.forEach((pn, j) => {
       const t = r.cells[j] || '';
       h += '<div class="prod"><h4>' + esc(pn) + '</h4><p class="txt' + (t ? '' : ' empty') + '">' + esc(t || T.step2.noDesc) + '</p>' +
-        seg('score', i, j, 0, 5, r.scores[j], T.step2.scoreFor(pn, r.name)) + '</div>';
+        seg('score', i, j, 0, 5, r.scores[j], T.step2.scoreFor(pn, r.name), r.sug && r.sug.scores[j] ? r.sug.scores[j].value : null) +
+        sugLine(r.sug && r.sug.scores[j], 'takeScore', i, j) + '</div>';
     });
     h += '</div></article>';
   });
@@ -273,7 +285,10 @@ $('matrix').addEventListener('click', (e) => {
   const act = b.dataset.act, r = Number(b.dataset.r), p = Number(b.dataset.p), v = Number(b.dataset.v);
   if (act === 'toExport') { showStep(3); return; }
   if (act === 'score') S.rows[r].scores[p] = S.rows[r].scores[p] === v ? null : v;
-  else if (act === 'weight') S.rows[r].weight = v;
+  else if (act === 'weight') { S.rows[r].weight = v; S.rows[r].weightSet = true; }
+  else if (act === 'takeScore') S.rows[r].scores[p] = v;
+  else if (act === 'takeWeight') { S.rows[r].weight = v; S.rows[r].weightSet = true; }
+  else if (act === 'takeAll') applyOpenSuggestions(S);
   else if (act === 'rmRow') S.rows.splice(r, 1);
   save(); renderMatrix();
 });
@@ -285,6 +300,7 @@ function mdFilename() {
 function renderExport() {
   $('optFront').checked = !!S.frontmatter;
   $('optDetails').checked = !!S.details;
+  $('optSug').checked = !!S.sugExport;
   const st = $('mdStatus');
   if (!S.rows.length) {
     $('mdOut').value = ''; flash(st, T.step3.noData, 'warn');
@@ -296,6 +312,7 @@ function renderExport() {
   $('mdOut').value = buildMarkdown(S, { date: formatDate(new Date()) });
 }
 $('optFront').addEventListener('change', (e) => { S.frontmatter = e.target.checked; save(); renderExport(); });
+$('optSug').addEventListener('change', (e) => { S.sugExport = e.target.checked; save(); renderExport(); });
 $('optDetails').addEventListener('change', (e) => { S.details = e.target.checked; save(); renderExport(); });
 $('dlMd').addEventListener('click', () => {
   const file = mdFilename();
@@ -326,6 +343,7 @@ $('sessFile').addEventListener('change', async (e) => {
 
 /* ---------- Start ---------- */
 function applyStateToInputs() {
+  $('optSuggest').checked = !!S.suggest;
   $('zweck').value = S.zweck; $('kontext').value = S.kontext;
   $('hinweise').value = S.hinweise; $('pasted').value = S.pasted;
 }

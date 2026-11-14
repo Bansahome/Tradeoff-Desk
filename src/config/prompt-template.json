@@ -34,6 +34,22 @@
       "2. Darunter „Quellen“ als nummerierte Liste mit URL und Stand-Datum.",
       "3. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte."
     ],
-    "closing": "Keine weitere Tabelle, kein Bericht, keine Zusammenfassung."
-  }
+    "closing": "Keine weitere Tabelle, kein Bericht, keine Zusammenfassung.",
+    "suggestIntro": "Ergänze außerdem den Bewertungsvorschlag.",
+    "restSuggest": [
+      "2. Darunter „Bewertungsvorschlag“ als zweite Markdown-Tabelle mit Trennzeile. Spalten: „Kriterium“, „Gewicht“, danach je eine Spalte pro Produkt ({products}). Jede Zelle beginnt mit einer ganzen Zahl, dann ein Gedankenstrich und eine Begründung in einem Satz. Gewicht 1 bis 5 (wie wichtig für diesen Kunden), Produktzellen 0 bis 5 (wie gut erfüllt). Begründe nur mit belegten Fakten, bei „nicht belegt“ höchstens 2 Punkte.",
+      "3. Darunter „Quellen“ als nummerierte Liste mit URL und Stand-Datum.",
+      "4. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte."
+    ],
+    "closingSuggest": "Keine weitere Tabelle, kein Bericht, keine Gesamtpunktzahl, keine Empfehlung."
+  },
+  "outputSuggest": [
+    "WICHTIG: Beginne deine Antwort direkt mit dem Ergebnis. Kein Fließtext, keine Einleitung, kein Bericht davor. Recherchiere gründlich, aber gib nur das Ergebnis aus.",
+    "FORMAT: Gib das komplette Ergebnis (Teil 1 bis 4) in genau EINEM Markdown-Codeblock aus, der mit ```markdown beginnt und mit ``` endet, damit ich den Rohtext mit einem Klick kopieren kann. Außerhalb des Codeblocks steht nichts. Wenn du Dateien erzeugen kannst, biete denselben Inhalt zusätzlich als Download „tradeoff-desk-antwort.md“ an.",
+    "1. Genau eine Markdown-Tabelle mit Pipe-Zeichen und Trennzeile. Erste Spalte „Kriterium“, danach je eine Spalte pro Produkt in dieser Reihenfolge: {products}. Eine Zeile pro Kriterium, mit den oben genannten Namen. Jede Zelle maximal zwei Sätze, Quellen als [1], [2] usw. Reine Fakten, keine Bewertung in dieser Tabelle.",
+    "2. Darunter „Bewertungsvorschlag“ als zweite Markdown-Tabelle mit Trennzeile. Spalten: „Kriterium“, „Gewicht“, danach je eine Spalte pro Produkt in derselben Reihenfolge ({products}). Eine Zeile pro Kriterium, gleiche Namen wie oben. Jede Zelle beginnt mit einer ganzen Zahl, dann ein Gedankenstrich und eine Begründung in einem Satz. Gewicht 1 bis 5 (wie wichtig für diesen Kunden, abgeleitet aus Einsatzzweck und Kundenkontext). Produktzellen 0 bis 5 (wie gut erfüllt: 0 = nicht erfüllt, 5 = voll erfüllt). Beispiel einer Zelle: „4 – Update Rings decken den Bedarf, WAN-Last durch Delivery Optimization gering [2]“. Begründe nur mit belegten Fakten aus der Tabelle oben. Bei „nicht belegt“ höchstens 2 Punkte und das in der Begründung nennen. Keine weitere Tabelle außer diesen beiden.",
+    "3. Darunter „Quellen“: nummerierte Liste mit URL und Stand-Datum.",
+    "4. Darunter „Offene Punkte und Unsicherheiten“ als kurze Stichpunkte."
+  ],
+  "closingSuggest": "Die Zahlen im Bewertungsvorschlag sind nur ein Vorschlag. Gib keine Gesamtpunktzahl und keine Empfehlung ab, die endgültige Gewichtung und Bewertung mache ich selbst."
 }

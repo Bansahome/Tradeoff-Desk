@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseTable, splitRow, cleanCell } from '../src/core/parser.js';
+import { parseTable, parseSuggestions, parseSuggestCell, splitRow, cleanCell } from '../src/core/parser.js';
 
 const basic = `| Kriterium | A | B |
 |---|---|---|
@@ -146,6 +146,61 @@ describe('Tabulatorgetrennte Kopie', () => {
   });
   it('bevorzugt Pipe-Tabellen, wenn beides vorkommt', () => {
     expect(parseTable(basic + '\n\na\tb\tc\nd\te\tf').cols).toEqual(['A', 'B']);
+  });
+});
+
+const MAIN = '| Kriterium | Alpha | Beta |\n|---|---|---|\n| Funktion | fa | fb |\n| Kosten | ka | kb |';
+const SUG = '| Kriterium | Gewicht | Alpha | Beta |\n|---|---|---|---|\n| Funktion | 5 – wichtig für den Kunden | 4 – deckt ab [1] | 2 – Lücken |\n| Kosten | 3 – mittel | 5/5: günstig | 1 nicht belegt |';
+
+describe('Bewertungsvorschläge', () => {
+  it('parseSuggestCell liest Zahl und Begründung in gängigen Schreibweisen', () => {
+    expect(parseSuggestCell('4 – gut')).toEqual({ value: 4, why: 'gut' });
+    expect(parseSuggestCell('4 - gut')).toEqual({ value: 4, why: 'gut' });
+    expect(parseSuggestCell('4: gut')).toEqual({ value: 4, why: 'gut' });
+    expect(parseSuggestCell('5/5 – top')).toEqual({ value: 5, why: 'top' });
+    expect(parseSuggestCell('0 nicht erfüllt')).toEqual({ value: 0, why: 'nicht erfüllt' });
+    expect(parseSuggestCell('3')).toEqual({ value: 3, why: '' });
+    expect(parseSuggestCell('10 – zu hoch')).toBeNull();
+    expect(parseSuggestCell('gut')).toBeNull();
+    expect(parseSuggestCell('')).toBeNull();
+  });
+
+  it('die Vorschlagstabelle wird nie als Haupttabelle gewählt, egal in welcher Reihenfolge', () => {
+    for (const text of [MAIN + '\n\n' + SUG, SUG + '\n\n' + MAIN]) {
+      const r = parseTable(text, { products: ['Alpha', 'Beta'] });
+      expect(r.cols).toEqual(['Alpha', 'Beta']);
+      expect(r.rows[0].cells).toEqual(['fa', 'fb']);
+      const r2 = parseTable(text);
+      expect(r2.rows[0].cells).toEqual(['fa', 'fb']);
+    }
+  });
+
+  it('ordnet Gewicht und Punkte den Zeilen und Produkten zu', () => {
+    const text = MAIN + '\n\n' + SUG;
+    const t = parseTable(text, { products: ['Alpha', 'Beta'] });
+    const s = parseSuggestions(text, t);
+    expect(s[0].weight).toEqual({ value: 5, why: 'wichtig für den Kunden' });
+    expect(s[0].scores).toEqual([{ value: 4, why: 'deckt ab [1]' }, { value: 2, why: 'Lücken' }]);
+    expect(s[1].scores[0]).toEqual({ value: 5, why: 'günstig' });
+    expect(s[1].scores[1]).toEqual({ value: 1, why: 'nicht belegt' });
+  });
+
+  it('ordnet auch bei abweichender Spaltenreihenfolge und Kriterien-Schreibweise zu', () => {
+    const sug = '| Kriterium | Gewicht | Beta | Alpha |\n|---|---|---|---|\n| funktion | 2 – x | 1 – b | 5 – a |';
+    const t = parseTable(MAIN, { products: ['Alpha', 'Beta'] });
+    const s = parseSuggestions(sug, t);
+    expect(s[0].scores.map((x) => x.value)).toEqual([5, 1]);
+    expect(s[1]).toBeNull();
+  });
+
+  it('liefert null ohne Vorschlagstabelle', () => {
+    expect(parseSuggestions(MAIN, parseTable(MAIN))).toBeNull();
+  });
+
+  it('funktioniert in einem Codeblock mit Quellen darunter', () => {
+    const text = '```markdown\n' + MAIN + '\n\n' + SUG + '\n\nQuellen\n1. https://example.org\n```';
+    const t = parseTable(text, { products: ['Alpha', 'Beta'] });
+    expect(parseSuggestions(text, t)).toHaveLength(2);
   });
 });
 

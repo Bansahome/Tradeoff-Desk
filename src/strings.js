@@ -64,6 +64,9 @@ export const de = {
     critUp: (name) => name + ' nach oben',
     critDown: (name) => name + ' nach unten',
     critRemove: (name) => name + ' löschen',
+    suggest: 'Bewertungsvorschlag mit Begründung vom Modell anfordern',
+    suggestHint:
+      'Optional. Das Modell schlägt Gewicht und Punkte vor und begründet sie. Du siehst die Vorschläge in Schritt 2 und entscheidest selbst, was zählt.',
     promptTitle: 'Prompt für ChatGPT',
     promptLabel: 'Fertiger Prompt',
     modeHint:
@@ -86,6 +89,13 @@ export const de = {
     loadFile: 'Datei laden (.md, .txt)',
     fileLoaded: (name) => name + ' eingelesen. Jetzt „Tabelle übernehmen“.',
     fileError: 'Datei konnte nicht gelesen werden.',
+    sugLabel: 'Vorschlag Modell:',
+    sugMark: 'Vorschlag des Modells',
+    take: 'Übernehmen',
+    takeAll: 'Offene Vorschläge übernehmen',
+    takenAll: (n) => n + ' Vorschläge übernommen.',
+    sugLegend: 'Unterstrichene Zahlen sind Vorschläge des Modells. In die Rechnung gehen nur deine Werte.',
+    parsedSug: (n) => ' ' + n + ' Bewertungsvorschläge erkannt.',
     fixTitle: 'Antwort war keine Tabelle? Folge-Prompt nutzen',
     fixHint:
       'Diesen Text im selben Chat nachschicken. Der Chatbot formatiert sein Ergebnis dann um. Die neue Antwort fügst du oben ein.',
@@ -118,6 +128,7 @@ export const de = {
     title: 'Export als Markdown',
     front: 'Obsidian-Frontmatter',
     details: 'Beschreibungen je Kriterium',
+    sug: 'Modellvorschläge mit Begründung',
     outLabel: 'Markdown-Export',
     copy: 'Markdown kopieren',
     download: '.md herunterladen',
@@ -141,6 +152,10 @@ export const de = {
     missing: (n) => (n === 1 ? 'Hinweis: 1 Feld ist nicht bewertet und zählt als 0.' : 'Hinweis: ' + n + ' Felder sind nicht bewertet und zählen als 0.'),
     details: 'Beschreibung je Kriterium',
     unscored: '–',
+    sug: 'Vorschläge des Modells',
+    sugNote: 'Nur Vorschläge. Maßgeblich sind die Werte der Bewertungsmatrix.',
+    proposal: 'Vorschlag',
+    final: 'endgültig',
   },
   files: {
     sessionBase: 'tradeoff-desk-sitzung',

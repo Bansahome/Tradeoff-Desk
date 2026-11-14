@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { slugify, formatDate, activeCriteria } from '../src/core/util.js';
 import {
+  countSuggestions, applyOpenSuggestions,
   freshState, emptyState, normalizeState, rowsFromTable, blankRows, hasScores,
   serializeSession, parseSession, serializeCriteriaSet, parseCriteriaSet,
 } from '../src/core/state.js';
@@ -49,13 +50,13 @@ describe('state', () => {
     expect(s.products).toEqual(['A', 'B']);
     expect(s.criteria).toHaveLength(1);
     expect(s.criteria[0].on).toBe(true);
-    expect(s.rows).toEqual([{ name: 'R', weight: 5, cells: ['x', ''], scores: [null, 3] }]);
+    expect(s.rows).toEqual([{ name: 'R', weight: 5, cells: ['x', ''], scores: [null, 3], sug: null, weightSet: false }]);
     expect(s.frontmatter).toBe(true);
   });
 
   it('rowsFromTable und blankRows setzen Gewicht 3 und keine Punkte', () => {
     const t = { cols: ['A', 'B'], rows: [{ name: 'K', cells: ['x', 'y'] }] };
-    expect(rowsFromTable(t)).toEqual([{ name: 'K', weight: 3, cells: ['x', 'y'], scores: [null, null] }]);
+    expect(rowsFromTable(t)).toEqual([{ name: 'K', weight: 3, cells: ['x', 'y'], scores: [null, null], sug: null, weightSet: false }]);
     const b = blankRows(freshState());
     expect(b.cols).toEqual(['Intune', 'WSUS', 'baramundi']);
     expect(b.rows).toHaveLength(5);
@@ -73,7 +74,9 @@ describe('state', () => {
 describe('Sitzung und Kriterien-Vorlage', () => {
   it('Roundtrip der Sitzung', () => {
     const s = freshState();
-    s.cols = ['A', 'B']; s.rows = [{ name: 'K', weight: 4, cells: ['x', 'y'], scores: [5, null] }];
+    s.cols = ['A', 'B'];
+    s.suggest = true;
+    s.rows = [{ name: 'K', weight: 4, cells: ['x', 'y'], scores: [5, null], weightSet: true, sug: { weight: { value: 4, why: 'wichtig' }, scores: [{ value: 5, why: 'gut' }, null] } }];
     const res = parseSession(serializeSession(s, new Date('2026-01-01T00:00:00Z')));
     expect(res.ok).toBe(true);
     expect(res.state).toEqual(s);
@@ -96,5 +99,32 @@ describe('Sitzung und Kriterien-Vorlage', () => {
     expect(parseCriteriaSet('{')).toEqual({ ok: false, error: 'json' });
     expect(parseCriteriaSet('{"app":"x"}')).toEqual({ ok: false, error: 'format' });
     expect(parseCriteriaSet('{"app":"tradeoff-desk","criteria":[]}')).toEqual({ ok: false, error: 'format' });
+  });
+});
+
+describe('Modellvorschläge im Zustand', () => {
+  const mk = () => {
+    const s = freshState();
+    s.cols = ['A', 'B'];
+    s.rows = [
+      { name: 'K1', weight: 3, cells: ['', ''], scores: [null, 2], weightSet: false, sug: { weight: { value: 5, why: 'w' }, scores: [{ value: 4, why: 'a' }, { value: 1, why: 'b' }] } },
+      { name: 'K2', weight: 2, cells: ['', ''], scores: [null, null], weightSet: true, sug: { weight: { value: 4, why: 'w' }, scores: [null, { value: 3, why: 'c' }] } },
+      { name: 'K3', weight: 3, cells: ['', ''], scores: [null, null], weightSet: false, sug: null },
+    ];
+    return s;
+  };
+  it('zählt Vorschläge', () => {
+    expect(countSuggestions(mk())).toBe(5);
+  });
+  it('übernimmt nur offene Punkte und nicht selbst gesetzte Gewichte', () => {
+    const s = mk();
+    expect(applyOpenSuggestions(s)).toBe(3);
+    expect(s.rows[0]).toMatchObject({ weight: 5, scores: [4, 2], weightSet: true });
+    expect(s.rows[1]).toMatchObject({ weight: 2, scores: [null, 3] });
+    expect(s.rows[2]).toMatchObject({ weight: 3, scores: [null, null] });
+  });
+  it('normalizeState verwirft kaputte Vorschläge', () => {
+    const s = normalizeState({ products: [], criteria: [], cols: ['A'], rows: [{ name: 'K', weight: 3, cells: [], scores: [], sug: { weight: { value: 9 }, scores: [{ value: 7 }] } }] });
+    expect(s.rows[0].sug).toBeNull();
   });
 });
